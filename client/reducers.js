@@ -1,20 +1,20 @@
 
 import { combineReducers } from 'redux'
 import {
-  REQUEST_TODOS
+  RECEIVE_TODOS
 } from './actions'
 
-function requestTodos(state = { }, action) {
+function todos(state = [], action) {
   switch (action.type) {
-    case REQUEST_TODOS:
-      return state
+    case RECEIVE_TODOS:
+      return action.data
     default:
       return state
   }
 }
 
 const rootReducer = combineReducers({
-  requestTodos
+  todos
 })
 
 export default rootReducer

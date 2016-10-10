@@ -13,7 +13,8 @@ import           Control.Concurrent
 import           Control.Applicative
 import           Control.Monad.Except
 import           Control.Error.Safe (tryJust)
-import           Control.Lens
+import           Control.Lens hiding ((.=))
+import           Data.Aeson hiding (json)
 import           Data.ByteString (ByteString)
 import           Data.Map.Syntax ((##))
 import qualified Data.Text as T
@@ -103,24 +104,17 @@ handleCommentSubmit = method POST (withLoggedInUser go)
       maybeWhen c (withTop db . Db.saveComment user . T.decodeUtf8)
       redirect "/"
 
-renderComment :: Monad m => Db.Comment -> I.Splice m
-renderComment (Db.Comment _ saved text) =
-  I.runChildrenWithText splices
+handleRestComments :: H ()
+handleRestComments = method GET listComments
   where
-    splices = do
-      "savedOn" ## T.pack . show $ saved
-      "comment" ## text
+    listComments = do
+      comments <- withTop db $ Db.listComments (Db.User 1 "")
+      writeJSON $ map (\c ->
+                        object [ "id"      .= Db.commentId c
+                               , "savedOn" .= Db.commentSavedOn c
+                               , "text"    .= Db.commentText c])
+                    comments
 
--- | Render main page
-mainPage :: H ()
-mainPage = withLoggedInUser go
-  where
-    go :: Db.User -> H ()
-    go user = do
-      comments <- withTop db $ Db.listComments user
-      heistLocal (splices comments) $ render "/index"
-    splices cs =
-      I.bindSplices ("comments" ## I.mapSplices renderComment cs)
 
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
@@ -128,6 +122,7 @@ routes = [ ("/login",        handleLoginSubmit)
          , ("/logout",       handleLogout)
          , ("/new_user",     handleNewUser)
          , ("/save_comment", handleCommentSubmit)
+         , ("/api/todo",     handleRestComments)
          , ("/build",        serveDirectory "static/build")
          , ("/",             serveFile "static/index.html")
          ]

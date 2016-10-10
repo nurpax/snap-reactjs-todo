@@ -4,9 +4,11 @@ module Util (
     reader
   , logFail
   , logRunEitherT
+  , writeJSON
   ) where
 
 import           Control.Monad.Except
+import qualified Data.Aeson as A
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Read as T
@@ -34,3 +36,16 @@ logFail = either (logError . T.encodeUtf8 . T.pack) id
 
 logRunEitherT :: ExceptT String H (H ()) -> H ()
 logRunEitherT e = runExceptT e >>= logFail
+
+-------------------------------------------------------------------------------
+-- | Mark response as 'application/json'
+jsonResponse :: MonadSnap m => m ()
+jsonResponse = modifyResponse $ setHeader "Content-Type" "application/json"
+
+-------------------------------------------------------------------------------
+-- | Set MIME to 'application/json' and write given object into
+-- 'Response' body.
+writeJSON :: (MonadSnap m, A.ToJSON a) => a -> m ()
+writeJSON a = do
+  jsonResponse
+  writeLBS . A.encode $ a

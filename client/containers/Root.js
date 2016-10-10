@@ -4,6 +4,7 @@ import { Router, Route, browserHistory } from 'react-router';
 
 import App from './App';
 import configureStore from '../configureStore'
+import { fetchTodos } from '../actions'
 
 const store = configureStore()
 
@@ -14,5 +15,7 @@ const Root = () => (
     </Router>
   </Provider>
 );
+
+store.dispatch(fetchTodos())
 
 export default Root;
