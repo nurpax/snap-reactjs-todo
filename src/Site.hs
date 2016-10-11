@@ -128,7 +128,8 @@ routes = [ ("/login",        handleLoginSubmit)
          , ("/logout",       handleLogout)
          , ("/new_user",     handleNewUser)
          , ("/save_comment", handleCommentSubmit)
-         , ("/",             serveDirectory "static")
+         , ("/build",        serveDirectory "static/build")
+         , ("/",             serveFile "static/index.html")
          ]
 
 -- | The application initializer.
