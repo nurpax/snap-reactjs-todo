@@ -27,5 +27,9 @@
     "babel-core": "^6.17.0",
     "json-loader": "^0.5.4",
     "webpack": "^1.13.2"
+  },
+  "scripts": {
+    "dev": "webpack -d --watch",
+    "build" : "webpack -p"
   }
 }
