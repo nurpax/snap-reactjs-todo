@@ -9,14 +9,14 @@ export const RECEIVE_TODOS = 'RECEIVE_TODOS'
 
 // Login handling
 // TODO issue async here
-export function login(data) {
+export function login (data) {
   return {
     type: USER_LOGGED_IN,
     payload: data
   }
 }
 
-export function logout() {
+export function logout () {
   return {
     type: USER_LOGGED_OUT
   }
