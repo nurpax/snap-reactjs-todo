@@ -1,0 +1,54 @@
+name:                snap-reactjs-todo
+version:             0.1.0.0
+synopsis:            Snap + ReactJS + webpack example
+description:         Please see README.md
+homepage:            https://github.com/nurpax/snap-reactjs-todo#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Janne Hellsten
+maintainer:          jjhellst@gmail.com
+copyright:           2016 Janne Hellsten
+category:            Web
+build-type:          Simple
+-- extra-source-files:
+cabal-version:       >=1.10
+
+flag development
+  description: Whether to build the server in development (interpreted) mode
+  default: False
+
+executable snap-reactjs-todo-exe
+  hs-source-dirs:      src
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+    base                  >= 4        && < 5,
+    bytestring            >= 0.9.1    && < 0.11,
+    heist                 >= 0.14,
+    lens,
+    map-syntax            >= 0.2     && < 0.3,
+    mtl                   >= 2 && < 3,
+    snap                  >= 1.0,
+    snap-core             >= 1.0,
+    snap-server           >= 1.0,
+    snap-loader-static,
+    snaplet-sqlite-simple >= 0.4 && < 1.0,
+    sqlite-simple         >= 0.1 && < 1.0,
+    text                  >= 1.2,
+    time                  >= 1.5,
+    either                >= 3.1,
+    errors                >= 2.1.2
+  default-language:    Haskell2010
+
+--test-suite snap-reactjs-todo-test
+--  type:                exitcode-stdio-1.0
+--  hs-source-dirs:      test
+--  main-is:             Spec.hs
+--  build-depends:       base
+--                     , snap-reactjs-todo
+--  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+--  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/nurpax/snap-reactjs-todo
