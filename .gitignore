@@ -1,0 +1,6 @@
+/static/build/
+/.stack-work/
+/node_modules/
+/site_key.txt
+/snaplet-sqlite-simple/
+/test.db
