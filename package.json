@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "webpack -d --watch",
+    "lint": "eslint client",
     "build": "webpack -p"
   },
   "repository": {

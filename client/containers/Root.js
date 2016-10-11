@@ -23,8 +23,8 @@ const UserIsAuthenticated = UserAuthWrapper({
 const Root = () => (
   <Provider store={store}>
     <Router history={history}>
-      <Route path="test" component={UserIsAuthenticated(Test)}/>
-      <Route path="login" component={Login}/>
+      <Route path='test' component={UserIsAuthenticated(Test)} />
+      <Route path='login' component={Login} />
       <Route path='/(:filter)' component={App} />
     </Router>
   </Provider>
