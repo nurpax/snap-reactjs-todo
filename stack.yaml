@@ -37,9 +37,9 @@ resolver: lts-7.3
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - '.'
-- snaplet-sqlite-simple/
 
 extra-deps:
+   - snaplet-sqlite-simple-1.0.0.0
    - snap-loader-static-1.0.0.0
    - heist-1.0.0.0
    - map-syntax-0.2.0.1

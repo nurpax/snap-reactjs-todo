@@ -22,7 +22,7 @@ var config = {
         exclude: '/node_modules/',
         query: {
           cacheDirectory: true,
-          presets: ['react', 'es2015']
+          presets: ['react', 'es2015', 'stage-0']
         }
       },
     ]

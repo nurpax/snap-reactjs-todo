@@ -1,10 +1,12 @@
 
 import { combineReducers } from 'redux'
+import { routerReducer } from 'react-router-redux'
+
 import {
-  RECEIVE_TODOS
+  RECEIVE_TODOS, USER_LOGGED_IN, USER_LOGGED_OUT
 } from './actions'
 
-function todos(state = [], action) {
+function receiveTodos (state = [], action) {
   switch (action.type) {
     case RECEIVE_TODOS:
       return action.data
@@ -13,8 +15,20 @@ function todos(state = [], action) {
   }
 }
 
+const userReducer = (state = {}, { type, payload }) => {
+  if (type === USER_LOGGED_IN) {
+    return payload
+  }
+  if (type === USER_LOGGED_OUT) {
+    return {}
+  }
+  return state
+}
+
 const rootReducer = combineReducers({
-  todos
+  user: userReducer,
+  routing: routerReducer,
+  todos: receiveTodos
 })
 
 export default rootReducer
