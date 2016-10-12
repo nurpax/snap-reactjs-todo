@@ -16,18 +16,14 @@ import           Control.Error.Safe (tryJust)
 import           Control.Lens hiding ((.=))
 import           Data.Aeson hiding (json)
 import           Data.ByteString (ByteString)
-import           Data.Map.Syntax ((##))
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Read as T
 import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.SqliteJwt
-import           Snap.Snaplet.Heist
 import           Snap.Snaplet.SqliteSimple
 import           Snap.Util.FileServe
-import           Heist
-import qualified Heist.Interpreted as I
 ------------------------------------------------------------------------------
 import           Application
 import qualified Db
@@ -53,10 +49,7 @@ handleRestComments = method GET listComments
 
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
-routes = [-- ("/login",        handleLoginSubmit)
-         --, ("/logout",       handleLogout)
-         --, ("/new_user",     handleNewUser)
-         -- , ("/save_comment", handleCommentSubmit)
+routes = [
            ("/api/todo",     handleRestComments)
          , ("/build",        serveDirectory "static/build")
          , ("/",             serveFile "static/index.html")
@@ -65,12 +58,6 @@ routes = [-- ("/login",        handleLoginSubmit)
 -- | The application initializer.
 app :: SnapletInit App App
 app = makeSnaplet "app" "An snaplet example application." Nothing $ do
-    -- addRoutes must be called before heistInit - heist wants to
-    -- serve "" itself which means our mainPage handler never gets a
-    -- chance to get called.
-    addRoutes routes
-    h <- nestSnaplet "" heist $ heistInit "templates"
-
     -- Initialize auth that's backed by an sqlite database
     d <- nestSnaplet "db" db sqliteInit
 
@@ -81,5 +68,5 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     -- into the Model to create all the DB tables if necessary.
     let c = sqliteConn $ d ^# snapletValue
     liftIO $ withMVar c $ \conn -> Db.createTables conn
-    return $ App h d jwt
+    return $ App d jwt
 
