@@ -11,10 +11,16 @@ class Main extends Component {
   }
 
   render () {
-    let login = this.props.user ? null : <Link to='/login'>Login</Link>
     return (
       <Layout user={this.props.user}>
-        <Link to='/todos'>Todo list</Link>
+        <p>Example application using:</p>
+        <ul>
+          <li>React</li>
+          <li>React-redux</li>
+          <li>Redux-auth-wrapper</li>
+          <li>Haskell Snap framework with a custom JWT authorization module</li>
+        </ul>
+        <p>Go to: <Link to='/todos'>Todo List</Link></p>
       </Layout>
     )
   }
