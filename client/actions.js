@@ -1,3 +1,4 @@
+/* eslint camelcase: 0 */
 
 import fetch from 'isomorphic-fetch'
 import jwt_decode from 'jwt-decode'
@@ -11,29 +12,29 @@ export const RECEIVE_TODOS = 'RECEIVE_TODOS'
 export function login (login, pass) {
   return function (dispatch) {
     return fetch('/api/login', {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({login, pass})
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({login, pass})
+    })
+    .then(response => response.json())
+    .then(function (json) {
+      let tok = jwt_decode(json.token)
+      // Keep the original jwt token for sending it back to the server in
+      // fetch headers
+      tok.token = json.token
+      localStorage.setItem('token', JSON.stringify(tok))
+      dispatch({
+        type: USER_LOGGED_IN,
+        payload: tok
       })
-      .then(response => response.json())
-      .then(function (json) {
-        let tok = jwt_decode(json.token)
-        // Keep the original jwt token for sending it back to the server in
-        // fetch headers
-        tok.token = json.token
-        localStorage.setItem('token', JSON.stringify(tok))
-        dispatch({
-          type: USER_LOGGED_IN,
-          payload: tok
-        })
-      })
-    }
+    })
+  }
 }
 
-export function logout() {
+export function logout () {
   localStorage.removeItem('token')
   return {
     type: USER_LOGGED_OUT
@@ -51,7 +52,7 @@ function receiveTodos (json) {
 
 export function fetchTodos () {
   return function (dispatch, getState) {
-    return fetch('/api/todo', { headers: {'Authorization': 'Bearer '+getState().user.token} })
+    return fetch('/api/todo', { headers: {'Authorization': 'Bearer ' + getState().user.token} })
       .then(response => response.json())
       .then(json =>
         dispatch(receiveTodos(json))

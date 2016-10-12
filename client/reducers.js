@@ -15,12 +15,12 @@ function receiveTodos (state = [], action) {
   }
 }
 
-const userReducer = (state = JSON.parse(localStorage.getItem('token')) || null, { type, payload }) => {
+const userReducer = (state = JSON.parse(localStorage.getItem('token')) || null, { type, payload }) => {
   if (type === USER_LOGGED_IN) {
     return payload
   }
   if (type === USER_LOGGED_OUT) {
-    return {}
+    return null
   }
   return state
 }

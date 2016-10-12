@@ -7,7 +7,7 @@ var Link = require('react-router').Link
 
 class Main extends Component {
   static propTypes = {
-    user: PropTypes.object.isRequired
+    user: React.PropTypes.object
   }
 
   render () {
