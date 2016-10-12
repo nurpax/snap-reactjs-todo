@@ -15,6 +15,7 @@ import           Control.Monad.Except
 import           Control.Error.Safe (tryJust)
 import           Control.Lens hiding ((.=))
 import           Data.Aeson hiding (json)
+import           Data.Bifunctor (first)
 import           Data.ByteString (ByteString)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -49,18 +50,31 @@ handleRestComments = method GET listComments
 handleNewUser :: H ()
 handleNewUser = method POST newUser
   where
-    newUser = do
-      user <- with jwt $ J.createUser "jope" "jope123"
-      liftIO $ putStrLn (show user)
-      return ()
+    newUser = runHttpErrorExceptT $ do
+      login <- requirePostParam "login"
+      pass  <- requirePostParam "pass"
+      user  <- lift $ with jwt $ J.createUser login pass
+      u <- hoistHttpError (first show user)
+      return . writeJSON $ object [ "id" .= J.userId u, "login" .= J.userLogin u ]
+
+handleLogin :: H ()
+handleLogin = method POST go
+  where
+    go = runHttpErrorExceptT $ do
+      login <- requirePostParam "login"
+      pass  <- requirePostParam "pass"
+      user  <- lift $ with jwt $ J.loginUser login pass
+      u <- hoistHttpError (first show user)
+      return . writeJSON $ object [ "id" .= J.userId u, "login" .= J.userLogin u ]
 
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
 routes = [
-           ("/api/login",  handleNewUser)
-         , ("/api/todo",   handleRestComments)
-         , ("/build",      serveDirectory "static/build")
-         , ("/",           serveFile "static/index.html")
+           ("/api/login/new", handleNewUser)
+         , ("/api/login",     handleLogin)
+         , ("/api/todo",      handleRestComments)
+         , ("/build",         serveDirectory "static/build")
+         , ("/",              serveFile "static/index.html")
          ]
 
 -- | The application initializer.
