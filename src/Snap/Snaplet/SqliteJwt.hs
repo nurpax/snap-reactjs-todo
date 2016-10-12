@@ -18,6 +18,7 @@ module Snap.Snaplet.SqliteJwt (
   , sqliteJwtInit
   , createUser
   , loginUser
+  , requireAuth
 --  , validateUser
   ) where
 
@@ -25,29 +26,52 @@ import           Prelude hiding (catch)
 
 ------------------------------------------------------------------------------
 import           Control.Concurrent
-import           Control.Lens
+import           Control.Lens hiding ((.=), (??))
 import           Control.Monad
+import           Control.Monad.Except
 import           Control.Monad.State
+import           Control.Error
 import qualified Crypto.BCrypt as BC
-import qualified Data.Aeson as A
+import           Data.Aeson
+import           Data.Aeson.Types (parseEither)
+import qualified Data.Attoparsec.ByteString.Char8 as AP
 import           Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BS8
 import qualified Data.Configurator as C
 import           Data.Maybe
+import           Data.Map as M
+import           Data.HashMap.Strict as HM
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
 import qualified Data.Text.Encoding as LT
 import qualified Database.SQLite.Simple as S
 import           Snap
 import           Snap.Snaplet.SqliteSimple
+import qualified Web.JWT as JWT
 
 data User = User {
-    userId         :: Int
-  , userLogin      :: T.Text
-  , userHashedPass :: ByteString
+    userId    :: Int
+  , userLogin :: T.Text
   } deriving (Eq, Show)
 
-instance FromRow User where
-  fromRow = User <$> field <*> field <*> field
+instance FromJSON User where
+  parseJSON (Object v) = User <$> (v .: "id") <*> (v .: "login")
+  parseJSON _          = mzero
+
+instance ToJSON User where
+  toJSON (User i l) = object [ "id" .= i, "login" .= l ]
+
+-- Used only internally in this module, shouldn't expose as this contains the
+-- hashed password.
+data DbUser = DbUser {
+    dbuserId         :: Int
+  , dbuserLogin      :: T.Text
+  , dbuserHashedPass :: ByteString
+  } deriving (Eq, Show)
+
+instance FromRow DbUser where
+  fromRow = DbUser <$> field <*> field <*> field
 
 data AuthFailure =
     UnknownUser
@@ -97,7 +121,10 @@ querySingle q ps = do
 qconcat :: [T.Text] -> S.Query
 qconcat = S.Query . T.concat
 
-queryUser :: T.Text -> H b (Maybe User)
+fromDbUser :: DbUser -> User
+fromDbUser (DbUser i l _) = User i l
+
+queryUser :: T.Text -> H b (Maybe DbUser)
 queryUser login = do
   querySingle (qconcat ["SELECT uid,login,password FROM ", userTable, " WHERE login=?"])
     (Only login)
@@ -111,7 +138,7 @@ createUser login pass = do
       let insq = qconcat ["INSERT INTO ", userTable, " (login,password) VALUES (?,?)"]
       executeSingle insq (login,hashedPass)
       user <- queryUser login
-      return (Right (fromJust user))
+      return (Right (fromDbUser . fromJust $ user))
     Just _ ->
       return (Left DuplicateLogin)
 
@@ -122,8 +149,8 @@ loginUser login pass = do
     Nothing ->
       return (Left UnknownUser)
     Just user -> do
-      if BC.validatePassword (userHashedPass user) (LT.encodeUtf8 pass) then
-        passwordOk user
+      if BC.validatePassword (dbuserHashedPass user) (LT.encodeUtf8 pass) then
+        passwordOk (fromDbUser user)
       else
         passwordFail
 
@@ -131,6 +158,43 @@ loginUser login pass = do
     -- TODO this should return JWT
     passwordOk u = return (Right u)
     passwordFail = return (Left WrongPassword)
+
+parseBearerJwt :: ByteString -> Either String T.Text
+parseBearerJwt s =
+  AP.parseOnly parser s -- (parser <* AP.endOfInput) s
+  where
+    parser = AP.string "Bearer " *> payload
+    payload = LT.decodeUtf8 <$> AP.takeWhile1 (AP.inClass base64)
+    base64 = "A-Za-z0-9+/_=.-"
+
+
+-- | Discard anything after this and return given status code to HTTP
+-- client immediately.
+finishEarly :: MonadSnap m => Int -> String -> m b
+finishEarly code str = do
+  modifyResponse $ setResponseStatus code (BS8.pack str)
+  modifyResponse $ addHeader "Content-Type" "text/plain"
+  writeBS (BS8.pack str)
+  getResponse >>= finishWith
+
+-- Authorize against JWT and run the user action if JWT verification succeeds.
+requireAuth :: (User -> H b ()) -> H b ()
+requireAuth action = do
+  -- TODO add configuration options + document how to generate it
+  let siteSecret = JWT.secret "site_secret"
+  req <- getRequest
+  res <- runExceptT $ do
+    authHdr     <- getHeader "Authorization" (rqHeaders req) ?? "Missing Authorization header"
+    encPayload  <- hoistEither . parseBearerJwt $ authHdr
+    jwt         <- JWT.decode encPayload     ?? "Malformed JWT"
+    verifJwt    <- JWT.verify siteSecret jwt ?? "JWT verification failed"
+    let unregClaims = JWT.unregisteredClaims (JWT.claims verifJwt)
+    -- TODO verify expiration too
+    user        <- hoistEither . parseEither parseJSON $ (toObject unregClaims)
+    return user
+  either (finishEarly 401) action res
+  where
+    toObject = Object . HM.fromList . M.toList
 
 schemaVersion :: S.Connection -> IO Int
 schemaVersion conn = do

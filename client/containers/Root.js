@@ -4,12 +4,11 @@ import { Router, Route, browserHistory } from 'react-router'
 import { syncHistoryWithStore, routerActions } from 'react-router-redux'
 import { UserAuthWrapper } from 'redux-auth-wrapper'
 
+import Main from './Main'
 import App from './App'
 import Login from './Login'
-import Test from './Test'
 
 import configureStore from '../configureStore'
-import { fetchTodos } from '../actions'
 
 const store = configureStore()
 const history = syncHistoryWithStore(browserHistory, store)
@@ -23,13 +22,11 @@ const UserIsAuthenticated = UserAuthWrapper({
 const Root = () => (
   <Provider store={store}>
     <Router history={history}>
-      <Route path='test' component={UserIsAuthenticated(Test)} />
-      <Route path='login' component={Login} />
-      <Route path='/(:filter)' component={App} />
+      <Route path='/' component={Main} />
+      <Route path='/todos' component={UserIsAuthenticated(App)} />
+      <Route path='/login' component={Login} />
     </Router>
   </Provider>
 )
-
-store.dispatch(fetchTodos())
 
 export default Root

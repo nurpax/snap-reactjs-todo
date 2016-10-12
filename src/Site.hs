@@ -53,11 +53,12 @@ maybeWhen (Just a) f = f a
 handleRestComments :: H ()
 handleRestComments = method GET listComments
   where
+    listComments :: H ()
     listComments = do
-      req <- getRequest
-      let auth = getHeader "Authorization" (rqHeaders req)
-      liftIO $ putStrLn (show auth)
-      comments <- withTop db $ Db.listComments (Db.User 1 "")
+      with jwt $ J.requireAuth query
+
+    query (J.User uid _) = do
+      comments <- withTop db $ Db.listComments (Db.UserId uid)
       writeJSON $ map (\c ->
                         object [ "id"      .= Db.commentId c
                                , "savedOn" .= Db.commentSavedOn c

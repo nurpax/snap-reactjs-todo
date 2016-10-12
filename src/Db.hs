@@ -2,6 +2,7 @@
 
 module Db (
     User(..)
+  , UserId(..)
   , Comment(..)
   , createTables
   , saveComment
@@ -17,7 +18,8 @@ import           Snap.Snaplet.SqliteSimple
 ------------------------------------------------------------------------------
 import           Application
 
-data User = User Int T.Text
+newtype UserId = UserId Int
+data User = User UserId T.Text
 
 data Comment = Comment
   {
@@ -53,11 +55,11 @@ createTables conn = do
                 , "comment TEXT)"])
 
 -- | Retrieve a user's list of comments
-listComments :: User -> Handler App Sqlite [Comment]
-listComments (User uid _) =
+listComments :: UserId -> Handler App Sqlite [Comment]
+listComments (UserId uid) =
   query "SELECT id,saved_on,comment FROM comments WHERE user_id = ?" (Only uid)
 
 -- | Save a new comment for a user
-saveComment :: User -> T.Text -> Handler App Sqlite ()
-saveComment (User uid _) c =
+saveComment :: UserId -> T.Text -> Handler App Sqlite ()
+saveComment (UserId uid) c =
   execute "INSERT INTO comments (user_id,comment) VALUES (?,?)" (uid, c)
