@@ -94,9 +94,12 @@ querySingle q ps = do
   liftIO $ withMVar conn $ \conn ->
     return . listToMaybe =<< S.query conn q ps
 
+qconcat :: [T.Text] -> S.Query
+qconcat = S.Query . T.concat
+
 queryUser :: T.Text -> H b (Maybe User)
 queryUser login = do
-  querySingle (S.Query (T.concat ["SELECT uid,login,password FROM ", userTable, " WHERE login=?"]))
+  querySingle (qconcat ["SELECT uid,login,password FROM ", userTable, " WHERE login=?"])
     (Only login)
 
 createUser :: T.Text -> T.Text -> H b (Either AuthFailure User)
@@ -105,7 +108,7 @@ createUser login pass = do
   case user of
     Nothing -> do
       hashedPass <- liftIO $ BC.hashPasswordUsingPolicy bcryptPolicy (LT.encodeUtf8 pass)
-      let insq = S.Query (T.concat ["INSERT INTO ", userTable, " (login,password) VALUES (?,?)"])
+      let insq = qconcat ["INSERT INTO ", userTable, " (login,password) VALUES (?,?)"]
       executeSingle insq (login,hashedPass)
       user <- queryUser login
       return (Right (fromJust user))
@@ -135,8 +138,7 @@ schemaVersion conn = do
   if not versionExists
     then return 0
     else do
-      let q = T.concat ["SELECT version FROM ", versionTable, " LIMIT 1"]
-      [Only v] <- S.query_ conn (S.Query q) :: IO [Only Int]
+      [Only v] <- S.query_ conn (qconcat ["SELECT version FROM ", versionTable, " LIMIT 1"]) :: IO [Only Int]
       return v
 
 tableExists :: S.Connection -> T.Text -> IO Bool
