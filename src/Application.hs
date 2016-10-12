@@ -12,16 +12,14 @@ module Application where
 import Control.Lens
 import Snap
 import Snap.Snaplet.Heist
-import Snap.Snaplet.Auth
-import Snap.Snaplet.Session
 import Snap.Snaplet.SqliteSimple
+import Snap.Snaplet.SqliteJwt
 
 ------------------------------------------------------------------------------
 data App = App
     { _heist :: Snaplet (Heist App)
-    , _sess :: Snaplet SessionManager
     , _db :: Snaplet Sqlite
-    , _auth :: Snaplet (AuthManager App)
+    , _jwt :: Snaplet SqliteJwt
     }
 
 makeLenses ''App

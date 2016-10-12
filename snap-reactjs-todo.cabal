@@ -17,14 +17,16 @@ flag development
   default: False
 
 executable snap-reactjs-todo
-  hs-source-dirs:      src
+  hs-source-dirs:      src src/Snap/Snaplet
   main-is:             Main.hs
-  other-modules:       Application Db Site Util
+  other-modules:       Application Db Site Util Snap.Snaplet.SqliteJwt
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:
     aeson,
     base                  >= 4      && < 5,
     bytestring            >= 0.9.1  && < 0.11,
+    configurator,
+    unordered-containers,
     heist                 >= 0.14,
     lens,
     map-syntax            >= 0.2     && < 0.3,
