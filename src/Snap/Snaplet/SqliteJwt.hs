@@ -14,6 +14,9 @@ module Snap.Snaplet.SqliteJwt (
   -- * The Snaplet
     SqliteJwt(..)
   , sqliteJwtInit
+  , createUser
+--  , loginUser
+--  , validateUser
   ) where
 
 import           Prelude hiding (catch)
@@ -23,6 +26,8 @@ import           Control.Concurrent
 import           Control.Lens
 import           Control.Monad
 import           Control.Monad.IO.Class
+import           Control.Monad.State
+import qualified Crypto.BCrypt as BC
 import qualified Data.Aeson as A
 import           Data.ByteString (ByteString)
 import qualified Data.Configurator as C
@@ -32,15 +37,33 @@ import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as LT
-import qualified Data.Text.Lazy.Encoding as LT
+import qualified Data.Text.Encoding as LT
 import qualified Database.SQLite.Simple as S
+import           Database.SQLite.Simple.FromField
+import           Database.SQLite.Simple.FromRow
+import           Database.SQLite.Simple.Types
 import           Snap
 import           Snap.Snaplet.SqliteSimple
+
+data User = User {
+    userId       :: Int
+  , userLogin    :: T.Text
+  , userPassword :: ByteString
+  } deriving (Eq, Show)
+
+instance FromRow User where
+  fromRow = User <$> field <*> field <*> field
+
+data AuthFailure =
+    UnknownUser
+  | DuplicateLogin
+  deriving (Eq, Show)
 
 data SqliteJwt = SqliteJwt
     { sqliteJwtConn :: MVar S.Connection
     }
 
+bcryptPolicy = BC.fastBcryptHashingPolicy
 
 jwtAuthTable :: T.Text
 jwtAuthTable = "jwt_auth"
@@ -60,6 +83,36 @@ sqliteJwtInit db = makeSnaplet "sqlite-simple-jwt" description Nothing $ do
     return $ SqliteJwt conn
   where
     description = "sqlite-simple jwt auth"
+
+executeSingle :: (ToRow q)
+            => MVar S.Connection -> S.Query -> q -> IO ()
+executeSingle pool q ps = withMVar pool $ \conn ->
+  S.execute conn q ps
+
+querySingle :: (ToRow q, FromRow a)
+            => MVar S.Connection -> S.Query -> q -> IO (Maybe a)
+querySingle pool q ps = withMVar pool $ \conn ->
+  return . listToMaybe =<< S.query conn q ps
+
+queryUser :: MVar S.Connection -> T.Text -> IO (Maybe User)
+queryUser conn login = do
+  querySingle conn (S.Query (T.concat ["SELECT uid,login,password FROM ", userTable, " WHERE login=?"]))
+    (Only login)
+
+createUser :: T.Text -> T.Text -> Handler b SqliteJwt (Either AuthFailure User)
+createUser login pass = do
+  conn <- gets sqliteJwtConn
+  let q = S.Query (T.concat ["SELECT login FROM ", userTable, " WHERE login = ?"])
+  user <- liftIO $ queryUser conn login
+  case user of
+    Nothing -> do
+      hashedPass <- liftIO $ BC.hashPasswordUsingPolicy bcryptPolicy (LT.encodeUtf8 pass)
+      let insq = S.Query (T.concat ["INSERT INTO ", userTable, " (login,password) VALUES (?,?)"])
+      liftIO $ executeSingle conn insq (login,hashedPass)
+      user <- liftIO $ queryUser conn login
+      return (Right (fromJust user))
+    Just _ ->
+      return (Left DuplicateLogin)
 
 schemaVersion :: S.Connection -> IO Int
 schemaVersion conn = do

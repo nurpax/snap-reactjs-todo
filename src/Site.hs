@@ -21,7 +21,7 @@ import qualified Data.Text.Encoding as T
 import qualified Data.Text.Read as T
 import           Snap.Core
 import           Snap.Snaplet
-import           Snap.Snaplet.SqliteJwt
+import qualified Snap.Snaplet.SqliteJwt as J
 import           Snap.Snaplet.SqliteSimple
 import           Snap.Util.FileServe
 ------------------------------------------------------------------------------
@@ -46,23 +46,32 @@ handleRestComments = method GET listComments
                                , "text"    .= Db.commentText c])
                     comments
 
+handleNewUser :: H ()
+handleNewUser = method POST newUser
+  where
+    newUser = do
+      user <- with jwt $ J.createUser "jope" "jope123"
+      liftIO $ putStrLn (show user)
+      return ()
 
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
 routes = [
-           ("/api/todo",     handleRestComments)
-         , ("/build",        serveDirectory "static/build")
-         , ("/",             serveFile "static/index.html")
+           ("/api/login",  handleNewUser)
+         , ("/api/todo",   handleRestComments)
+         , ("/build",      serveDirectory "static/build")
+         , ("/",           serveFile "static/index.html")
          ]
 
 -- | The application initializer.
 app :: SnapletInit App App
 app = makeSnaplet "app" "An snaplet example application." Nothing $ do
+    addRoutes routes
     -- Initialize auth that's backed by an sqlite database
     d <- nestSnaplet "db" db sqliteInit
 
     -- Initialize auth that's backed by an sqlite database
-    jwt <- nestSnaplet "jwt" jwt (sqliteJwtInit d)
+    jwt <- nestSnaplet "jwt" jwt (J.sqliteJwtInit d)
 
     -- Grab the DB connection pool from the sqlite snaplet and call
     -- into the Model to create all the DB tables if necessary.
