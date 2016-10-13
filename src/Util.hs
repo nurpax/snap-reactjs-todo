@@ -2,39 +2,31 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Util (
-    reader
-  , logFail
+    logFail
+  , reqJSON
   , logRunEitherT
   , runHttpErrorExceptT
   , hoistHttpError
   , writeJSON
-  , requirePostParam
   ) where
 
 import           Control.Monad.Except
+import           Data.Int (Int64)
 import qualified Data.Aeson as A
-import           Data.ByteString
+import qualified Data.ByteString as B
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import qualified Data.Text.Read as T
 
 import           Snap.Core
 import           Snap.Snaplet
 import           Application
 
 class ConvertParam c where
-  parseParam :: ByteString -> Either String c
+  parseParam :: B.ByteString -> Either String c
 
 type H = Handler App App
 
 data HttpError = HttpError Int String
-
-reader :: T.Reader a -> T.Text -> Either String a
-reader p s =
-  case p s of
-    Right (a, "") -> return a
-    Right (_, _) -> Left "readParser: input not exhausted"
-    Left e -> Left e
 
 -- | Log Either Left values or run the Handler action.  To be used in
 -- situations where to user shouldn't see an error (either due to it
@@ -62,7 +54,7 @@ writeJSON a = do
 
 -- | Discard anything after this and return given status code to HTTP
 -- client immediately.
-finishEarly :: MonadSnap m => Int -> ByteString -> m b
+finishEarly :: MonadSnap m => Int -> B.ByteString -> m b
 finishEarly code str = do
   modifyResponse $ setResponseStatus code str
   modifyResponse $ addHeader "Content-Type" "text/plain"
@@ -91,21 +83,39 @@ hoistHttpError :: Monad m => Either String a -> ExceptT HttpError m a
 hoistHttpError (Left m)  = hoistEither . Left . badReq $ m
 hoistHttpError (Right v) = hoistEither . Right $ v
 
-tryJust :: String -> Maybe a -> Either String a
-tryJust s Nothing  = Left s
-tryJust _ (Just v) = Right v
+-------------------------------------------------------------------------------
+-- | Demand the presence of JSON in the body assuming it is not larger
+-- than 50000 bytes.
+reqJSON :: (MonadSnap m, A.FromJSON b) => m b
+reqJSON = reqBoundedJSON 50000
 
-tryPostParam :: MonadSnap m => ByteString -> ExceptT HttpError m ByteString
-tryPostParam p = do
-  v <- lift $ getPostParam p
-  hoistHttpError (tryJust ("missing POST param '" ++ show p ++ "'") v)
+-------------------------------------------------------------------------------
+-- | Demand the presence of JSON in the body with a size up to N
+-- bytes. If parsing fails for any reson, request is terminated early
+-- and a server error is returned.
+reqBoundedJSON
+    :: (MonadSnap m, A.FromJSON a)
+    => Int64
+    -- ^ Maximum size in bytes
+    -> m a
+reqBoundedJSON n = do
+  res <- getBoundedJSON n
+  case res of
+    Left e -> finishEarly 400 "reqBoundedJSON" -- badReq e
+    Right a -> return a
 
-instance ConvertParam T.Text where
-  parseParam v = Right . T.decodeUtf8 $ v
+-------------------------------------------------------------------------------
+-- | Parse request body into JSON or return an error string.
+getBoundedJSON
+    :: (MonadSnap m, A.FromJSON a)
+    => Int64
+    -- ^ Maximum size in bytes
+    -> m (Either String a)
+getBoundedJSON n = do
+  bodyVal <- A.decode `fmap` readRequestBody (fromIntegral n)
+  return $ case bodyVal of
+    Nothing -> Left "Can't find JSON data in POST body"
+    Just v -> case A.fromJSON v of
+                A.Error e -> Left e
+                A.Success a -> Right a
 
-instance ConvertParam Int where
-  parseParam v = (reader T.decimal . T.decodeUtf8 $ v)
-
-requirePostParam :: (MonadSnap m, ConvertParam a) => ByteString -> ExceptT HttpError m a
-requirePostParam n =
-  tryPostParam n >>= \p -> hoistHttpError (parseParam p)

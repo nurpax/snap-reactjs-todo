@@ -17,6 +17,7 @@ import           Control.Lens hiding ((.=))
 import           Data.Aeson hiding (json)
 import           Data.Bifunctor (first)
 import           Data.ByteString (ByteString)
+import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Read as T
@@ -25,12 +26,25 @@ import           Snap.Snaplet
 import qualified Snap.Snaplet.SqliteJwt as J
 import           Snap.Snaplet.SqliteSimple
 import           Snap.Util.FileServe
+import qualified Web.JWT as JWT
 ------------------------------------------------------------------------------
 import           Application
 import qualified Db
 import           Util
 
 type H = Handler App App
+
+data LoginParams = LoginParams {
+    lpLogin :: T.Text
+  , lpPass  :: T.Text
+  }
+
+instance FromJSON LoginParams where
+    parseJSON (Object v) = LoginParams <$>
+                           v .: "login" <*>
+                           v .: "pass"
+    -- A non-Object value is of the wrong type, so fail.
+    parseJSON _          = mzero
 
 maybeWhen :: Monad m => Maybe a -> (a -> m ()) -> m ()
 maybeWhen Nothing _  = return ()
@@ -47,25 +61,32 @@ handleRestComments = method GET listComments
                                , "text"    .= Db.commentText c])
                     comments
 
+replyJwt :: Int -> T.Text -> H ()
+replyJwt uid login =
+  let cs = JWT.def {
+            JWT.unregisteredClaims = M.fromList [("id", Number (fromIntegral uid)), ("login", String login)]
+          }
+      key = JWT.secret "site_secret"
+      token = JWT.encodeSigned JWT.HS256 key cs in
+  writeJSON $ object [ "token" .= token ]
+
 handleNewUser :: H ()
 handleNewUser = method POST newUser
   where
     newUser = runHttpErrorExceptT $ do
-      login <- requirePostParam "login"
-      pass  <- requirePostParam "pass"
-      user  <- lift $ with jwt $ J.createUser login pass
+      login <- lift reqJSON
+      user  <- lift $ with jwt $ J.createUser (lpLogin login) (lpPass login)
       u <- hoistHttpError (first show user)
-      return . writeJSON $ object [ "id" .= J.userId u, "login" .= J.userLogin u ]
+      return $ replyJwt (J.userId u) (J.userLogin u)
 
 handleLogin :: H ()
 handleLogin = method POST go
   where
     go = runHttpErrorExceptT $ do
-      login <- requirePostParam "login"
-      pass  <- requirePostParam "pass"
-      user  <- lift $ with jwt $ J.loginUser login pass
+      login <- lift reqJSON
+      user  <- lift $ with jwt $ J.loginUser (lpLogin login) (lpPass login)
       u <- hoistHttpError (first show user)
-      return . writeJSON $ object [ "id" .= J.userId u, "login" .= J.userLogin u ]
+      return $ replyJwt (J.userId u) (J.userLogin u)
 
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]

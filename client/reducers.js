@@ -15,7 +15,7 @@ function receiveTodos (state = [], action) {
   }
 }
 
-const userReducer = (state = {}, { type, payload }) => {
+const userReducer = (state = JSON.parse(localStorage.getItem('token')) || null, { type, payload }) => {
   if (type === USER_LOGGED_IN) {
     return payload
   }
