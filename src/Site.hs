@@ -54,6 +54,9 @@ handleRestComments :: H ()
 handleRestComments = method GET listComments
   where
     listComments = do
+      req <- getRequest
+      let auth = getHeader "Authorization" (rqHeaders req)
+      liftIO $ putStrLn (show auth)
       comments <- withTop db $ Db.listComments (Db.User 1 "")
       writeJSON $ map (\c ->
                         object [ "id"      .= Db.commentId c
