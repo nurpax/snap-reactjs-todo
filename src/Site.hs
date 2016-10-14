@@ -40,30 +40,46 @@ data LoginParams = LoginParams {
   }
 
 instance FromJSON LoginParams where
-    parseJSON (Object v) = LoginParams <$>
-                           v .: "login" <*>
-                           v .: "pass"
-    -- A non-Object value is of the wrong type, so fail.
-    parseJSON _          = mzero
+  parseJSON (Object v) = LoginParams <$>
+                         v .: "login" <*>
+                         v .: "pass"
+  parseJSON _          = mzero
+
+data PostTodoParams = PostTodoParams {
+    ptText :: T.Text
+  }
+
+instance FromJSON PostTodoParams where
+  parseJSON (Object v) = PostTodoParams <$> v .: "text"
+  parseJSON _          = mzero
+
+instance ToJSON Db.Todo where
+  toJSON c = object [ "id"        .= Db.todoId c
+                    , "savedOn"   .= Db.todoSavedOn c
+                    , "completed" .= Db.todoCompleted c
+                    , "text"      .= Db.todoText c]
 
 maybeWhen :: Monad m => Maybe a -> (a -> m ()) -> m ()
 maybeWhen Nothing _  = return ()
 maybeWhen (Just a) f = f a
 
-handleRestComments :: H ()
-handleRestComments = method GET listComments
+handleRestTodos :: H ()
+handleRestTodos = (method GET listTodos) <|> (method POST addTodo)
   where
-    listComments :: H ()
-    listComments = do
+    listTodos :: H ()
+    listTodos =
       with jwt $ J.requireAuth query
-
-    query (J.User uid _) = do
-      comments <- withTop db $ Db.listComments (Db.UserId uid)
-      writeJSON $ map (\c ->
-                        object [ "id"      .= Db.commentId c
-                               , "savedOn" .= Db.commentSavedOn c
-                               , "text"    .= Db.commentText c])
-                    comments
+      where
+        query (J.User uid _) = do
+          comments <- withTop db $ Db.listTodos (Db.UserId uid)
+          writeJSON comments
+    addTodo = do
+      parms <- reqJSON
+      with jwt $ J.requireAuth (query (ptText parms))
+      where
+        query text (J.User uid _) = do
+          todo <- withTop db $ Db.saveTodo (Db.UserId uid) text
+          writeJSON todo
 
 handleNewUser :: H ()
 handleNewUser = method POST newUser
@@ -90,7 +106,7 @@ routes :: [(ByteString, Handler App App ())]
 routes = [
            ("/api/login/new",  handleNewUser)
          , ("/api/login",      handleLogin)
-         , ("/api/todo",       handleRestComments)
+         , ("/api/todo",       handleRestTodos)
          , ("/static",         serveDirectory "static")
          , ("/",               serveFile "static/index.html")
          ]
@@ -110,4 +126,3 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     let c = sqliteConn $ d ^# snapletValue
     liftIO $ withMVar c $ \conn -> Db.createTables conn
     return $ App d jwt
-

@@ -3,13 +3,15 @@ import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
 
 import {
-  RECEIVE_TODOS, USER_LOGGED_IN, USER_LOGGED_OUT
+  RECEIVE_TODO_LIST, RECEIVE_TODO, USER_LOGGED_IN, USER_LOGGED_OUT
 } from './actions'
 
 function receiveTodos (state = [], action) {
   switch (action.type) {
-    case RECEIVE_TODOS:
+    case RECEIVE_TODO_LIST:
       return action.data
+    case RECEIVE_TODO:
+      return state.concat(action.data)
     default:
       return state
   }

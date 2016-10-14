@@ -19,9 +19,7 @@ export default class Layout extends Component {
       this.props.isLoginScreen ? null : <span>{login}{logout}</span>
     return (
       <div className='container'>
-        <div className='top-heading'>
-          <h1>Todo list app</h1>
-        </div>
+        <h1>Todo list app</h1>
         {this.props.children}
         <br />
         <div>

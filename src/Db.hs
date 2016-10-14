@@ -3,13 +3,14 @@
 module Db (
     User(..)
   , UserId(..)
-  , Comment(..)
+  , Todo(..)
   , createTables
-  , saveComment
-  , listComments) where
+  , saveTodo
+  , listTodos) where
 
 import           Control.Applicative
 import           Control.Monad
+import           Control.Monad.IO.Class (liftIO)
 import qualified Data.Text as T
 import           Data.Time (UTCTime)
 import qualified Database.SQLite.Simple as S
@@ -21,15 +22,16 @@ import           Application
 newtype UserId = UserId Int
 data User = User UserId T.Text
 
-data Comment = Comment
+data Todo = Todo
   {
-    commentId :: Int
-  , commentSavedOn :: UTCTime
-  , commentText :: T.Text
+    todoId :: Int
+  , todoSavedOn :: UTCTime
+  , todoCompleted :: Bool
+  , todoText :: T.Text
   } deriving (Show)
 
-instance FromRow Comment where
-  fromRow = Comment <$> field <*> field <*> field
+instance FromRow Todo where
+  fromRow = Todo <$> field <*> field <*> field <*> field
 
 tableExists :: S.Connection -> String -> IO Bool
 tableExists conn tblName = do
@@ -44,22 +46,32 @@ createTables conn = do
   -- Note: for a bigger app, you probably want to create a 'version'
   -- table too and use it to keep track of schema version and
   -- implement your schema upgrade procedure here.
-  schemaCreated <- tableExists conn "comments"
+  schemaCreated <- tableExists conn "todos"
   unless schemaCreated $
     S.execute_ conn
       (S.Query $
-       T.concat [ "CREATE TABLE comments ("
+       T.concat [ "CREATE TABLE todos ("
                 , "id INTEGER PRIMARY KEY, "
                 , "user_id INTEGER NOT NULL, "
                 , "saved_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, "
-                , "comment TEXT)"])
+                , "completed INTEGER DEFAULT 0, "
+                , "todo TEXT)"])
 
--- | Retrieve a user's list of comments
-listComments :: UserId -> Handler App Sqlite [Comment]
-listComments (UserId uid) =
-  query "SELECT id,saved_on,comment FROM comments WHERE user_id = ?" (Only uid)
+-- | Retrieve a user's list of todos
+listTodos :: UserId -> Handler App Sqlite [Todo]
+listTodos (UserId uid) =
+  query "SELECT id,saved_on,completed,todo FROM todos WHERE user_id = ?" (Only uid)
 
--- | Save a new comment for a user
-saveComment :: UserId -> T.Text -> Handler App Sqlite ()
-saveComment (UserId uid) c =
-  execute "INSERT INTO comments (user_id,comment) VALUES (?,?)" (uid, c)
+queryTodo :: S.Connection -> UserId -> Int -> IO Todo
+queryTodo conn (UserId uid) tid = do
+  [todo] <- S.query conn "SELECT id,saved_on,completed,todo FROM todos WHERE user_id = ? AND id = ?" (uid, tid)
+  liftIO (putStrLn . show $ todo)
+  return todo
+
+-- | Save a new todo for a user
+saveTodo :: UserId -> T.Text -> Handler App Sqlite Todo
+saveTodo user@(UserId uid) c = do
+  withSqlite $ \conn -> do
+    S.execute conn "INSERT INTO todos (user_id,todo) VALUES (?,?)" (uid, c)
+    tid <- S.lastInsertRowId conn
+    queryTodo conn user (fromIntegral tid)
