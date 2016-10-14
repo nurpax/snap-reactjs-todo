@@ -65,15 +65,6 @@ handleRestComments = method GET listComments
                                , "text"    .= Db.commentText c])
                     comments
 
-replyJwt :: Int -> T.Text -> H ()
-replyJwt uid login =
-  let cs = JWT.def {
-            JWT.unregisteredClaims = M.fromList [("id", Number (fromIntegral uid)), ("login", String login)]
-          }
-      key = JWT.secret "site_secret"
-      token = JWT.encodeSigned JWT.HS256 key cs in
-  writeJSON $ object [ "token" .= token ]
-
 handleNewUser :: H ()
 handleNewUser = method POST newUser
   where
@@ -81,7 +72,8 @@ handleNewUser = method POST newUser
       login <- lift reqJSON
       user  <- lift $ with jwt $ J.createUser (lpLogin login) (lpPass login)
       u <- hoistHttpError (first show user)
-      return $ replyJwt (J.userId u) (J.userLogin u)
+      jwt <- lift $ with jwt $ J.jwtFromUser u
+      return $ writeJSON $ object [ "token" .= jwt ]
 
 handleLogin :: H ()
 handleLogin = method POST go
@@ -90,7 +82,8 @@ handleLogin = method POST go
       login <- lift reqJSON
       user  <- lift $ with jwt $ J.loginUser (lpLogin login) (lpPass login)
       u <- hoistHttpError (first show user)
-      return $ replyJwt (J.userId u) (J.userLogin u)
+      jwt <- lift $ with jwt $ J.jwtFromUser u
+      return $ writeJSON $ object [ "token" .= jwt ]
 
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]

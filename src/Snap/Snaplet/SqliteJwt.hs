@@ -17,6 +17,7 @@ module Snap.Snaplet.SqliteJwt (
   , AuthFailure(..)
   , sqliteJwtInit
   , createUser
+  , jwtFromUser
   , loginUser
   , requireAuth
 --  , validateUser
@@ -176,6 +177,15 @@ finishEarly code str = do
   modifyResponse $ addHeader "Content-Type" "text/plain"
   writeBS (BS8.pack str)
   getResponse >>= finishWith
+
+-- TODO use a config parameter for site_secret
+jwtFromUser :: User -> H b JWT.JSON
+jwtFromUser (User uid login) = do
+  let cs = JWT.def {
+            JWT.unregisteredClaims = M.fromList [("id", Number (fromIntegral uid)), ("login", String login)]
+          }
+      key = JWT.secret "site_secret"
+  return $ JWT.encodeSigned JWT.HS256 key cs
 
 -- Authorize against JWT and run the user action if JWT verification succeeds.
 requireAuth :: (User -> H b ()) -> H b ()
