@@ -88,11 +88,11 @@ handleLogin = method POST go
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
 routes = [
-           ("/api/login/new", handleNewUser)
-         , ("/api/login",     handleLogin)
-         , ("/api/todo",      handleRestComments)
-         , ("/build",         serveDirectory "static/build")
-         , ("/",              serveFile "static/index.html")
+           ("/api/login/new",  handleNewUser)
+         , ("/api/login",      handleLogin)
+         , ("/api/todo",       handleRestComments)
+         , ("/static",         serveDirectory "static")
+         , ("/",               serveFile "static/index.html")
          ]
 
 -- | The application initializer.

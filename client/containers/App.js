@@ -3,7 +3,51 @@ import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 import { fetchTodos } from '../actions'
 
+import Layout from '../components/Layout'
+
 var Link = require('react-router').Link
+
+class NewTodoForm extends Component {
+  static propTypes = {
+  }
+
+  state = {
+    todo: ''
+  }
+
+  constructor(props) {
+    super(props)
+    this.handleChange = this.handleChange.bind(this)
+  }
+
+  onClick = (e) => {
+    e.preventDefault()
+    this.setState({todo: ''})
+  };
+
+  handleChange(event) {
+    this.setState({todo: event.target.value});
+  }
+
+  render () {
+    return (
+      <form>
+        <div className="row">
+          <div className="six columns">
+            <input className="u-full-width"
+                value={this.state.todo}
+                onChange={this.handleChange}
+                type="text" placeholder="Todo.."
+                id="newTodo" />
+          </div>
+          <div className="six columns">
+            <input onClick={this.onClick} className="button-primary" type="submit" value="Add" />
+          </div>
+        </div>
+      </form>
+    )
+  }
+}
 
 class App extends Component {
   static propTypes = {
@@ -18,13 +62,13 @@ class App extends Component {
   render () {
     let todos = this.props.todos.map(todo => <li key={todo.id}>{todo.text} <small>{todo.savedOn}</small></li>)
     return (
-      <div>
-        <h1>Snap / React / Redux todo app</h1>
+      <Layout user={this.props.user}>
         <h2>Todos</h2>
         <ul>
           {todos}
         </ul>
-      </div>
+        <NewTodoForm />
+      </Layout>
     )
   }
 }
@@ -39,6 +83,7 @@ const mapDispatchToProps = (dispatch) => {
 
 function mapStateToProps (state) {
   return {
+    user: state.user,
     todos: state.todos
   }
 }

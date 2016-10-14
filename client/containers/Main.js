@@ -1,6 +1,7 @@
 
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
+import Layout from '../components/Layout'
 
 var Link = require('react-router').Link
 
@@ -12,11 +13,9 @@ class Main extends Component {
   render () {
     let login = this.props.user ? null : <Link to='/login'>Login</Link>
     return (
-      <div>
-        <h1>Snap / React / Redux todo app</h1>
-        <Link to='/todos'>Todo list</Link><br />
-        {login}
-      </div>
+      <Layout user={this.props.user}>
+        <Link to='/todos'>Todo list</Link>
+      </Layout>
     )
   }
 }
