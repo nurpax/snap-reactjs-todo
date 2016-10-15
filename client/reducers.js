@@ -3,7 +3,7 @@ import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
 
 import {
-  RECEIVE_TODO_LIST, RECEIVE_TODO, USER_LOGGED_IN, USER_LOGGED_OUT
+  RECEIVE_TODO_LIST, RECEIVE_TODO, USER_LOGGED_IN, USER_LOGGED_OUT, SET_FILTER
 } from './actions'
 
 function receiveTodos (state = [], action) {
@@ -40,8 +40,16 @@ const userReducer = (state = JSON.parse(localStorage.getItem('token')) || null, 
   return state
 }
 
+const filterReducer = (state = 'active', { type, data }) => {
+  if (type === SET_FILTER) {
+    return data
+  }
+  return state
+}
+
 const rootReducer = combineReducers({
   user: userReducer,
+  filter: filterReducer,
   routing: routerReducer,
   todos: receiveTodos
 })

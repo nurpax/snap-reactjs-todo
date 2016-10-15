@@ -1,11 +1,46 @@
 
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
-import { fetchTodos, saveTodo } from '../actions'
+import { fetchTodos, saveTodo, setFilter } from '../actions'
 import { getSortedTodos } from '../selectors'
 
 import Layout from '../components/Layout'
 import TodoItem from './TodoItem'
+
+// TODO this class is kinda kludgy.  Would be better if it hooked into redux
+// state directly instead of managing its own internal state.  Buggy too,
+// state is not correctly retained across routes because redux state is out of
+// sync.
+class Choose extends Component {
+  static propTypes = {
+    choices: PropTypes.arrayOf(PropTypes.string).isRequired,
+    onChange: PropTypes.func.isRequired
+  }
+
+  state = { selected: 0 }
+
+  onAnchorClick = (e) => {
+    e.preventDefault()
+    let idx = parseInt(e.target.dataset.id, 10)
+    this.setState({ selected: idx })
+    this.props.onChange(this.props.choices[idx])
+  }
+
+  render () {
+    let last = this.props.choices.length - 1
+    let links = this.props.choices.map(function (name, idx) {
+      let link = this.state.selected === idx
+        ? <span>{name}</span>
+        : <a data-id={idx} onClick={this.onAnchorClick} href='#'>{name}</a>
+      if (idx === last) {
+        return (<span key={idx}>{link}</span>)
+      }
+      return (<span key={idx}>{link} | </span>)
+    }.bind(this))
+    return <span>{links}</span>
+  }
+
+}
 
 class NewTodoForm extends Component {
   static propTypes = {
@@ -55,8 +90,22 @@ class App extends Component {
   static propTypes = {
     loadTodoList: PropTypes.func.isRequired,
     saveTodo: PropTypes.func.isRequired,
+    setFilter: PropTypes.func.isRequired,
     todos: PropTypes.array.isRequired,
     user: PropTypes.object
+  }
+
+  constructor (props) {
+    super(props)
+    this.handleFilterChange = this.handleFilterChange.bind(this)
+  }
+
+  handleFilterChange (selected) {
+    if (selected === 'All') {
+      this.props.setFilter('all')
+    } else {
+      this.props.setFilter('active')
+    }
   }
 
   componentDidMount () {
@@ -64,6 +113,7 @@ class App extends Component {
   }
 
   render () {
+    let filterChoices = ['Active', 'All']
     let saveTodo = this.props.saveTodo
     let todos = this.props.todos.map(todo => <TodoItem key={todo.id} todo={todo} saveTodo={saveTodo} />)
     return (
@@ -73,6 +123,7 @@ class App extends Component {
           {todos}
         </ul>
         <NewTodoForm saveTodo={saveTodo} />
+        <p>Show: <Choose onChange={this.handleFilterChange} choices={filterChoices} /></p>
       </Layout>
     )
   }
@@ -85,6 +136,9 @@ const mapDispatchToProps = (dispatch) => {
     },
     saveTodo: (todo) => {
       dispatch(saveTodo(todo))
+    },
+    setFilter: (filter) => {
+      dispatch(setFilter(filter))
     }
   }
 }

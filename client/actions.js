@@ -3,6 +3,7 @@
 import fetch from 'isomorphic-fetch'
 import jwt_decode from 'jwt-decode'
 
+export const SET_FILTER = 'SET_FILTER'
 export const USER_LOGGED_IN = 'USER_LOGGED_IN'
 export const USER_LOGGED_OUT = 'USER_LOGGED_OUT'
 
@@ -81,5 +82,12 @@ export function saveTodo (todo) {
     .then(json =>
       dispatch(receiveTodo(json))
     )
+  }
+}
+
+export function setFilter (filter) {
+  return {
+    type: SET_FILTER,
+    data: filter
   }
 }
