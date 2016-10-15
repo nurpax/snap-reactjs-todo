@@ -67,23 +67,18 @@ maybeWhen :: Monad m => Maybe a -> (a -> m ()) -> m ()
 maybeWhen Nothing _  = return ()
 maybeWhen (Just a) f = f a
 
-jsonResponse :: ToJSON a => (J.User -> Handler App J.SqliteJwt a) -> H ()
-jsonResponse action = do
-  res <- with jwt $ J.requireAuth action
-  writeJSON res
-
 handleRestTodos :: H ()
 handleRestTodos = (method GET listTodos) <|> (method POST saveTodo)
   where
     listTodos :: H ()
-    listTodos = jsonResponse query
+    listTodos = replyJson query
       where
         query (J.User uid _) = do
           withTop db $ Db.listTodos (Db.UserId uid)
 
     saveTodo = do
       ps <- reqJSON
-      jsonResponse (query ps)
+      replyJson (query ps)
       where
         query ps (J.User uid _) =
           -- If the input todo id is Nothing, create a new todo.  Otherwise update
@@ -95,25 +90,48 @@ handleRestTodos = (method GET listTodos) <|> (method POST saveTodo)
               let newTodo = Db.Todo tid (ptSavedOn ps) (ptCompleted ps) (ptText ps)
               withTop db $ Db.saveTodo (Db.UserId uid) newTodo
 
+    replyJson :: ToJSON a => (J.User -> Handler App J.SqliteJwt a) -> H ()
+    replyJson action = do
+      res <- with jwt $ J.requireAuth action
+      writeJSON res
+
+
+handleLoginError :: J.AuthFailure -> H ()
+handleLoginError err =
+  case err of
+    J.DuplicateLogin -> failLogin dupeError
+    J.UnknownUser    -> failLogin failedPassOrUserError
+    J.WrongPassword  -> failLogin failedPassOrUserError
+  where
+    dupeError             = "Duplicate login"
+    failedPassOrUserError = "Unknown user or wrong password"
+
+    failLogin :: T.Text -> H ()
+    failLogin err = do
+      jsonResponse
+      modifyResponse $ setResponseStatus 401 "bad login"
+      writeJSON $ object [ "error" .= err]
+
+loginOK :: J.User -> H ()
+loginOK user = do
+  jwt <- with jwt $ J.jwtFromUser user
+  writeJSON $ object [ "token" .= jwt ]
+
 handleNewUser :: H ()
 handleNewUser = method POST newUser
   where
     newUser = runHttpErrorExceptT $ do
-      login <- lift reqJSON
-      user  <- lift $ with jwt $ J.createUser (lpLogin login) (lpPass login)
-      u <- hoistHttpError (first show user)
-      jwt <- lift $ with jwt $ J.jwtFromUser u
-      return $ writeJSON $ object [ "token" .= jwt ]
+      login      <- lift reqJSON
+      userOrErr  <- lift $ with jwt $ J.createUser (lpLogin login) (lpPass login)
+      return (either handleLoginError loginOK userOrErr)
 
 handleLogin :: H ()
 handleLogin = method POST go
   where
     go = runHttpErrorExceptT $ do
-      login <- lift reqJSON
-      user  <- lift $ with jwt $ J.loginUser (lpLogin login) (lpPass login)
-      u <- hoistHttpError (first show user)
-      jwt <- lift $ with jwt $ J.jwtFromUser u
-      return $ writeJSON $ object [ "token" .= jwt ]
+      login      <- lift reqJSON
+      userOrErr  <- lift $ with jwt $ J.loginUser (lpLogin login) (lpPass login)
+      return (either handleLoginError loginOK userOrErr)
 
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]

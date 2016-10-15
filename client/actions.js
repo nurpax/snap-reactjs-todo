@@ -12,18 +12,23 @@ export const RECEIVE_TODO_LIST = 'RECEIVE_TODO_LIST'
 
 export const RECEIVE_TODO = 'RECEIVE_TODO'
 
+function checkLogin (response, doLogin) {
+  // Handle bad login
+  if (response.status == 200) {
+    return response.json().then(doLogin)
+  }
+  else if (response.status === 401) {
+    return response.json().then(function (err) {
+      // TODO dispatch an error message here
+      console.log(err)
+    })
+  }
+  // TODO throw unknown error here
+}
+
 export function login (login, pass) {
   return function (dispatch) {
-    return fetch('/api/login', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({login, pass})
-    })
-    .then(response => response.json())
-    .then(function (json) {
+    function doLogin (json) {
       let tok = jwt_decode(json.token)
       // Keep the original jwt token for sending it back to the server in
       // fetch headers
@@ -33,6 +38,18 @@ export function login (login, pass) {
         type: USER_LOGGED_IN,
         payload: tok
       })
+    }
+    return fetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({login, pass})
+    })
+    .then(response => checkLogin(response, doLogin))
+    .catch(function (error) {
+      console.log('request failed', error)
     })
   }
 }
