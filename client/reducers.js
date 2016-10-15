@@ -3,7 +3,8 @@ import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
 
 import {
-  RECEIVE_TODO_LIST, RECEIVE_TODO, USER_LOGGED_IN, USER_LOGGED_OUT, SET_FILTER
+  RECEIVE_TODO_LIST, RECEIVE_TODO, USER_LOGGED_IN, USER_LOGGED_OUT, SET_FILTER,
+  NOTIFY_SET, NOTIFY_DISMISS
 } from './actions'
 
 function receiveTodos (state = [], action) {
@@ -47,11 +48,21 @@ const filterReducer = (state = 'active', { type, data }) => {
   return state
 }
 
+const notifyReducer = (state = null, { type, data }) => {
+  if (type === NOTIFY_SET) {
+    return data
+  } else if (type === NOTIFY_DISMISS) {
+    return null
+  }
+  return state
+}
+
 const rootReducer = combineReducers({
   user: userReducer,
   filter: filterReducer,
   routing: routerReducer,
-  todos: receiveTodos
+  todos: receiveTodos,
+  notification: notifyReducer
 })
 
 export default rootReducer

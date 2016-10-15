@@ -13,7 +13,7 @@ class Main extends Component {
   render () {
     return (
       <Layout user={this.props.user}>
-        <p>Example application using:</p>
+        <p>An example application using:</p>
         <ul>
           <li>React</li>
           <li>React-redux</li>

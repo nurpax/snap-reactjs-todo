@@ -3,6 +3,9 @@
 import fetch from 'isomorphic-fetch'
 import jwt_decode from 'jwt-decode'
 
+export const NOTIFY_SET = 'NOTIFY_SET'
+export const NOTIFY_DISMISS = 'NOTIFY_DISMISS'
+
 export const SET_FILTER = 'SET_FILTER'
 export const USER_LOGGED_IN = 'USER_LOGGED_IN'
 export const USER_LOGGED_OUT = 'USER_LOGGED_OUT'
@@ -12,15 +15,13 @@ export const RECEIVE_TODO_LIST = 'RECEIVE_TODO_LIST'
 
 export const RECEIVE_TODO = 'RECEIVE_TODO'
 
-function checkLogin (response, doLogin) {
+function checkLogin (dispatch, response, doLogin) {
   // Handle bad login
-  if (response.status == 200) {
+  if (response.status === 200) {
     return response.json().then(doLogin)
-  }
-  else if (response.status === 401) {
+  } else if (response.status === 401) {
     return response.json().then(function (err) {
-      // TODO dispatch an error message here
-      console.log(err)
+      dispatch(setNotification(err.error))
     })
   }
   // TODO throw unknown error here
@@ -47,7 +48,7 @@ export function login (login, pass) {
       },
       body: JSON.stringify({login, pass})
     })
-    .then(response => checkLogin(response, doLogin))
+    .then(response => checkLogin(dispatch, response, doLogin))
     .catch(function (error) {
       console.log('request failed', error)
     })
@@ -106,5 +107,17 @@ export function setFilter (filter) {
   return {
     type: SET_FILTER,
     data: filter
+  }
+}
+
+export function setNotification (msg) {
+  return dispatch => {
+    dispatch({ type: NOTIFY_SET, data: msg })
+    setTimeout(() => {
+      dispatch({
+        type: NOTIFY_DISMISS,
+        data: null
+      })
+    }, 5000)
   }
 }

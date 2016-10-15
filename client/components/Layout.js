@@ -11,10 +11,12 @@ export default class Layout extends Component {
     isLoginScreen: PropTypes.bool
   }
   render () {
-    let login = this.props.user ?
-      null : <Link to='/login'>Sign In</Link>
-    let logout = this.props.user ?
-      <LogoutLink to='/'>Log out</LogoutLink> : null
+    let login = this.props.user
+      ? null
+      : <Link to='/login'>Sign In</Link>
+    let logout = this.props.user
+      ? <span><LogoutLink to='/'>Log out</LogoutLink> (logged in as {this.props.user.login})</span>
+      : null
     let loginControls =
       this.props.isLoginScreen ? null : <span>{login}{logout}</span>
     return (

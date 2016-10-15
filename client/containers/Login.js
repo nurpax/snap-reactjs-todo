@@ -1,10 +1,33 @@
 
-import React, { Component, PropTypes } from 'react'
+import React, { PropTypes, Component } from 'react'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 
 import Layout from '../components/Layout'
 import { login } from '../actions'
+
+export class LoginErrorView extends Component {
+  static propTypes = {
+    msg: React.PropTypes.string
+  }
+
+  static mapStateToProps (state) {
+    return {
+      msg: state.notification
+    }
+  }
+
+  render () {
+    let style = {
+      color: 'red'
+    }
+    return (
+      <div style={style}>{this.props.msg}</div>
+    )
+  }
+}
+
+const LoginError = connect(LoginErrorView.mapStateToProps)(LoginErrorView)
 
 function select (state, ownProps) {
   const isAuthenticated = state.user || null
@@ -18,7 +41,9 @@ function select (state, ownProps) {
 class LoginContainer extends Component {
   static propTypes = {
     login: PropTypes.func.isRequired,
-    replace: PropTypes.func.isRequired
+    replace: PropTypes.func.isRequired,
+    isAuthenticated: React.PropTypes.object,
+    redirect: React.PropTypes.string
   }
 
   componentWillMount () {
@@ -44,13 +69,14 @@ class LoginContainer extends Component {
 
   render () {
     return (
-      <Layout isLoginScreen={true} user={this.props.isAuthenticated}>
+      <Layout isLoginScreen user={this.props.isAuthenticated}>
         <h2>Login</h2>
-        <input type="text" ref="login" placeholder="Account name.." />
-        <br/>
-        <input type="password" ref="pass" placeholder="Password.." />
-        <br/>
+        <input type='text' ref='login' placeholder='Account name..' />
+        <br />
+        <input type='password' ref='pass' placeholder='Password..' />
+        <br />
         <button className='button-primary' onClick={this.onClick}>Login</button>
+        <LoginError />
       </Layout>
     )
   }
