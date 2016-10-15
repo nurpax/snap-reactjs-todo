@@ -2,6 +2,7 @@
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 import { fetchTodos, saveTodo } from '../actions'
+import { getSortedTodos } from '../selectors'
 
 import Layout from '../components/Layout'
 import TodoItem from './TodoItem'
@@ -91,7 +92,7 @@ const mapDispatchToProps = (dispatch) => {
 function mapStateToProps (state) {
   return {
     user: state.user,
-    todos: state.todos
+    todos: getSortedTodos(state)
   }
 }
 

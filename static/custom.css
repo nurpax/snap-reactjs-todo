@@ -13,6 +13,12 @@ li {
 ul.todos {
     list-style-type: none;
 }
+small.date {
+    font-size: 0.7em;
+    color:#444;
+}
+
 li.completed {
     text-decoration: line-through;
+    color: #AAA;
 }

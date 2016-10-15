@@ -18,7 +18,7 @@ export default class TodoItem extends Component {
     let completedClass = todo.completed ? 'completed' : ''
     return (
       <li onClick={this.onClick} className={completedClass}>
-        {todo.text} <small>{todo.savedOn}</small>
+        {todo.text} <small className='date'>{todo.savedOn}</small>
       </li>
     )
   }
