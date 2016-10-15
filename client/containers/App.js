@@ -4,6 +4,7 @@ import { connect } from 'react-redux'
 import { fetchTodos, saveTodo } from '../actions'
 
 import Layout from '../components/Layout'
+import TodoItem from './TodoItem'
 
 class NewTodoForm extends Component {
   static propTypes = {
@@ -49,35 +50,12 @@ class NewTodoForm extends Component {
   }
 }
 
-class TodoItem extends Component {
-  static propTypes = {
-    todo: PropTypes.object.isRequired,
-    saveTodo: PropTypes.func.isRequired
-  }
-
-  constructor (props) {
-    super(props)
-  }
-
-  onClick = (e) => {
-    e.preventDefault()
-    this.props.saveTodo({...this.props.todo, completed: true})
-  };
-
-  render () {
-    let todo = this.props.todo
-    let completedClass = todo.completed ? 'completed' : '';
-    return (
-      <li onClick={this.onClick} className={completedClass}>{todo.text} <small>{todo.savedOn}</small></li>
-    )
-  }
-}
-
 class App extends Component {
   static propTypes = {
     loadTodoList: PropTypes.func.isRequired,
     saveTodo: PropTypes.func.isRequired,
-    todos: PropTypes.array.isRequired
+    todos: PropTypes.array.isRequired,
+    user: PropTypes.object
   }
 
   componentDidMount () {
@@ -86,11 +64,11 @@ class App extends Component {
 
   render () {
     let saveTodo = this.props.saveTodo
-    let todos = this.props.todos.map(todo => <TodoItem key={todo.id} todo={todo} saveTodo={saveTodo}/>)
+    let todos = this.props.todos.map(todo => <TodoItem key={todo.id} todo={todo} saveTodo={saveTodo} />)
     return (
       <Layout user={this.props.user}>
         <h2>Todos</h2>
-        <ul>
+        <ul className='todos'>
           {todos}
         </ul>
         <NewTodoForm saveTodo={saveTodo} />

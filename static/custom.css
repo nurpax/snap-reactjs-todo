@@ -10,6 +10,9 @@ li {
     background-color: #DEF;
 }
 
+ul.todos {
+    list-style-type: none;
+}
 li.completed {
     text-decoration: line-through;
 }

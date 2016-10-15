@@ -67,30 +67,33 @@ maybeWhen :: Monad m => Maybe a -> (a -> m ()) -> m ()
 maybeWhen Nothing _  = return ()
 maybeWhen (Just a) f = f a
 
+jsonResponse :: ToJSON a => (J.User -> Handler App J.SqliteJwt a) -> H ()
+jsonResponse action = do
+  res <- with jwt $ J.requireAuth action
+  writeJSON res
+
 handleRestTodos :: H ()
 handleRestTodos = (method GET listTodos) <|> (method POST saveTodo)
   where
     listTodos :: H ()
-    listTodos =
-      with jwt $ J.requireAuth query
+    listTodos = jsonResponse query
       where
         query (J.User uid _) = do
-          comments <- withTop db $ Db.listTodos (Db.UserId uid)
-          writeJSON comments
+          withTop db $ Db.listTodos (Db.UserId uid)
 
     saveTodo = do
-      parms <- reqJSON
-      with jwt $ J.requireAuth (query parms)
+      ps <- reqJSON
+      jsonResponse (query ps)
       where
-        query params (J.User uid _) =
-          case ptId params of
+        query ps (J.User uid _) =
+          -- If the input todo id is Nothing, create a new todo.  Otherwise update
+          -- an existing one.
+          case ptId ps of
             Nothing -> do
-              todo <- withTop db $ Db.newTodo (Db.UserId uid) (ptText params)
-              writeJSON todo
+              withTop db $ Db.newTodo (Db.UserId uid) (ptText ps)
             Just tid -> do
-              let newTodo = Db.Todo tid (ptSavedOn params) (ptCompleted params) (ptText params)
-              todo <- withTop db $ Db.saveTodo (Db.UserId uid) newTodo
-              writeJSON todo
+              let newTodo = Db.Todo tid (ptSavedOn ps) (ptCompleted ps) (ptText ps)
+              withTop db $ Db.saveTodo (Db.UserId uid) newTodo
 
 handleNewUser :: H ()
 handleNewUser = method POST newUser

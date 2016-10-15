@@ -188,7 +188,7 @@ jwtFromUser (User uid login) = do
   return $ JWT.encodeSigned JWT.HS256 key cs
 
 -- Authorize against JWT and run the user action if JWT verification succeeds.
-requireAuth :: (User -> H b ()) -> H b ()
+requireAuth :: (User -> H b a) -> H b a
 requireAuth action = do
   -- TODO add configuration options + document how to generate it
   let siteSecret = JWT.secret "site_secret"

@@ -25,11 +25,11 @@ data User = User UserId T.Text
 
 data Todo = Todo
   {
-    todoId :: Int
-  , todoSavedOn :: Maybe UTCTime
+    todoId        :: Int
+  , todoSavedOn   :: Maybe UTCTime
   , todoCompleted :: Bool
-  , todoText :: T.Text
-  } deriving (Show)
+  , todoText      :: T.Text
+  } deriving (Eq, Show)
 
 instance FromRow Todo where
   fromRow = Todo <$> field <*> field <*> field <*> field
@@ -63,10 +63,10 @@ listTodos :: UserId -> Handler App Sqlite [Todo]
 listTodos (UserId uid) =
   query "SELECT id,saved_on,completed,todo FROM todos WHERE user_id = ?" (Only uid)
 
+-- Query an existing todo
 queryTodo :: S.Connection -> UserId -> Int -> IO Todo
 queryTodo conn (UserId uid) tid = do
   [todo] <- S.query conn "SELECT id,saved_on,completed,todo FROM todos WHERE user_id = ? AND id = ?" (uid, tid)
-  liftIO (putStrLn . show $ todo)
   return todo
 
 -- | Save a new todo for a user
