@@ -20,8 +20,8 @@ class NewTodoForm extends Component {
   }
 
   onClick = (e) => {
-    this.props.saveTodo({text: this.state.todo})
     e.preventDefault()
+    this.props.saveTodo({text: this.state.todo, completed: false})
     this.setState({todo: ''})
   };
 
@@ -49,6 +49,30 @@ class NewTodoForm extends Component {
   }
 }
 
+class TodoItem extends Component {
+  static propTypes = {
+    todo: PropTypes.object.isRequired,
+    saveTodo: PropTypes.func.isRequired
+  }
+
+  constructor (props) {
+    super(props)
+  }
+
+  onClick = (e) => {
+    e.preventDefault()
+    this.props.saveTodo({...this.props.todo, completed: true})
+  };
+
+  render () {
+    let todo = this.props.todo
+    let completedClass = todo.completed ? 'completed' : '';
+    return (
+      <li onClick={this.onClick} className={completedClass}>{todo.text} <small>{todo.savedOn}</small></li>
+    )
+  }
+}
+
 class App extends Component {
   static propTypes = {
     loadTodoList: PropTypes.func.isRequired,
@@ -61,14 +85,15 @@ class App extends Component {
   }
 
   render () {
-    let todos = this.props.todos.map(todo => <li key={todo.id}>{todo.text} <small>{todo.savedOn}</small></li>)
+    let saveTodo = this.props.saveTodo
+    let todos = this.props.todos.map(todo => <TodoItem key={todo.id} todo={todo} saveTodo={saveTodo}/>)
     return (
       <Layout user={this.props.user}>
         <h2>Todos</h2>
         <ul>
           {todos}
         </ul>
-        <NewTodoForm saveTodo={this.props.saveTodo} />
+        <NewTodoForm saveTodo={saveTodo} />
       </Layout>
     )
   }

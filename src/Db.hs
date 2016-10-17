@@ -5,6 +5,7 @@ module Db (
   , UserId(..)
   , Todo(..)
   , createTables
+  , newTodo
   , saveTodo
   , listTodos) where
 
@@ -25,7 +26,7 @@ data User = User UserId T.Text
 data Todo = Todo
   {
     todoId :: Int
-  , todoSavedOn :: UTCTime
+  , todoSavedOn :: Maybe UTCTime
   , todoCompleted :: Bool
   , todoText :: T.Text
   } deriving (Show)
@@ -69,9 +70,22 @@ queryTodo conn (UserId uid) tid = do
   return todo
 
 -- | Save a new todo for a user
-saveTodo :: UserId -> T.Text -> Handler App Sqlite Todo
-saveTodo user@(UserId uid) c = do
+newTodo :: UserId -> T.Text -> Handler App Sqlite Todo
+newTodo user@(UserId uid) c = do
   withSqlite $ \conn -> do
     S.execute conn "INSERT INTO todos (user_id,todo) VALUES (?,?)" (uid, c)
     tid <- S.lastInsertRowId conn
     queryTodo conn user (fromIntegral tid)
+
+-- | Save a new todo for a user
+saveTodo :: UserId -> Todo -> Handler App Sqlite Todo
+saveTodo user@(UserId uid) todo = do
+  withSqlite $ \conn -> do
+    S.executeNamed conn "UPDATE todos SET saved_on=:so, completed=:c, todo=:text WHERE user_id = :uid AND id = :id"
+      [ ":so"   S.:= todoSavedOn todo
+      , ":c"    S.:= todoCompleted todo
+      , ":text" S.:= todoText todo
+      , ":uid"  S.:= uid
+      , ":id"   S.:= todoId todo
+      ]
+    queryTodo conn user (todoId todo)

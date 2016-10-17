@@ -113,6 +113,7 @@ getBoundedJSON
     -> m (Either String a)
 getBoundedJSON n = do
   bodyVal <- A.decode `fmap` readRequestBody (fromIntegral n)
+  liftIO $ putStrLn (show bodyVal)
   return $ case bodyVal of
     Nothing -> Left "Can't find JSON data in POST body"
     Just v -> case A.fromJSON v of

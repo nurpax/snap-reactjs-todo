@@ -9,3 +9,7 @@ li {
 .top {
     background-color: #DEF;
 }
+
+li.completed {
+    text-decoration: line-through;
+}

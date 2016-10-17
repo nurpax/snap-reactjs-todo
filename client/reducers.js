@@ -11,7 +11,20 @@ function receiveTodos (state = [], action) {
     case RECEIVE_TODO_LIST:
       return action.data
     case RECEIVE_TODO:
-      return state.concat(action.data)
+      let existingItem = false
+      let newState =
+        state.map(function (todo) {
+          if (todo.id === action.data.id) {
+            existingItem = true
+            return action.data
+          } else {
+            return todo
+          }
+        })
+      if (!existingItem) {
+        return state.concat(action.data)
+      }
+      return newState
     default:
       return state
   }

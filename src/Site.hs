@@ -21,6 +21,7 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Read as T
+import           Data.Time (UTCTime)
 import           Snap.Core
 import           Snap.Snaplet
 import qualified Snap.Snaplet.SqliteJwt as J
@@ -46,11 +47,14 @@ instance FromJSON LoginParams where
   parseJSON _          = mzero
 
 data PostTodoParams = PostTodoParams {
-    ptText :: T.Text
+    ptId        :: Maybe Int
+  , ptSavedOn   :: Maybe UTCTime
+  , ptCompleted :: Bool
+  , ptText      :: T.Text
   }
 
 instance FromJSON PostTodoParams where
-  parseJSON (Object v) = PostTodoParams <$> v .: "text"
+  parseJSON (Object v) = PostTodoParams <$> optional (v.: "id") <*> optional (v .: "savedOn") <*> v .: "completed" <*> v .: "text"
   parseJSON _          = mzero
 
 instance ToJSON Db.Todo where
@@ -64,7 +68,7 @@ maybeWhen Nothing _  = return ()
 maybeWhen (Just a) f = f a
 
 handleRestTodos :: H ()
-handleRestTodos = (method GET listTodos) <|> (method POST addTodo)
+handleRestTodos = (method GET listTodos) <|> (method POST saveTodo)
   where
     listTodos :: H ()
     listTodos =
@@ -73,13 +77,20 @@ handleRestTodos = (method GET listTodos) <|> (method POST addTodo)
         query (J.User uid _) = do
           comments <- withTop db $ Db.listTodos (Db.UserId uid)
           writeJSON comments
-    addTodo = do
+
+    saveTodo = do
       parms <- reqJSON
-      with jwt $ J.requireAuth (query (ptText parms))
+      with jwt $ J.requireAuth (query parms)
       where
-        query text (J.User uid _) = do
-          todo <- withTop db $ Db.saveTodo (Db.UserId uid) text
-          writeJSON todo
+        query params (J.User uid _) =
+          case ptId params of
+            Nothing -> do
+              todo <- withTop db $ Db.newTodo (Db.UserId uid) (ptText params)
+              writeJSON todo
+            Just tid -> do
+              let newTodo = Db.Todo tid (ptSavedOn params) (ptCompleted params) (ptText params)
+              todo <- withTop db $ Db.saveTodo (Db.UserId uid) newTodo
+              writeJSON todo
 
 handleNewUser :: H ()
 handleNewUser = method POST newUser
