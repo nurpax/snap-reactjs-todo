@@ -1,0 +1,9 @@
+{
+	"folders":
+	[
+		{
+			"path": ".",
+            "folder_exclude_patterns": [".stack-work", "static/build", "node_modules"]
+		}
+	]
+}
