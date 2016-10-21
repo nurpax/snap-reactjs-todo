@@ -5,7 +5,8 @@ import { connect } from 'react-redux'
 
 import Layout from '../components/Layout'
 import LoginError from './LoginError.js'
-import { login } from '../actions'
+import { login } from '../auth'
+import { setNotification } from '../actions'
 
 function select (state, ownProps) {
   const isAuthenticated = state.user || null
@@ -42,7 +43,11 @@ class LoginContainer extends Component {
 
   onClick = (e) => {
     e.preventDefault()
-    this.props.login(this.refs.login.value, this.refs.pass.value)
+    this.props.login({
+      login: this.refs.login.value,
+      pass: this.refs.pass.value,
+      notify: setNotification
+    })
     this.refs.login.value = ''
     this.refs.pass.value = ''
   };

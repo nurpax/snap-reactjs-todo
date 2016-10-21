@@ -3,7 +3,7 @@ import React, { Component, PropTypes } from 'react'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 
-import { logout } from '../actions'
+import { logout } from '../auth'
 import { Link } from 'react-router'
 
 class LogoutLinkContainer extends Component {

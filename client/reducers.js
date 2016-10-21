@@ -3,6 +3,7 @@ import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
 
 import * as c from './constants'
+import * as auth from './auth'
 
 function receiveTodos (state = [], action) {
   switch (action.type) {
@@ -28,16 +29,6 @@ function receiveTodos (state = [], action) {
   }
 }
 
-const userReducer = (state = JSON.parse(localStorage.getItem('token')) || null, { type, payload }) => {
-  if (type === c.USER_LOGGED_IN) {
-    return payload
-  }
-  if (type === c.USER_LOGGED_OUT) {
-    return null
-  }
-  return state
-}
-
 const filterReducer = (state = 'active', { type, data }) => {
   if (type === c.SET_FILTER) {
     return data
@@ -55,7 +46,7 @@ const notifyReducer = (state = null, { type, data }) => {
 }
 
 const rootReducer = combineReducers({
-  user: userReducer,
+  user: auth.userReducer,
   filter: filterReducer,
   routing: routerReducer,
   todos: receiveTodos,
