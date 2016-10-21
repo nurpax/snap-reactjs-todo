@@ -45,12 +45,24 @@ const notifyReducer = (state = null, { type, data }) => {
   return state
 }
 
-const rootReducer = combineReducers({
+const appReducer = combineReducers({
   user: auth.userReducer,
   filter: filterReducer,
   routing: routerReducer,
   todos: receiveTodos,
   notification: notifyReducer
 })
+
+const rootReducer = (state, action) => {
+  // Reset redux state if the user logged out.
+  //
+  // This state reset is required.  Otherwise logging in as user X, logging
+  // out and logging in as user Y will show user Y data from the previously
+  // logged in user X.
+  if (action.type === auth.USER_LOGGED_OUT) {
+    state = undefined
+  }
+  return appReducer(state, action)
+}
 
 export default rootReducer
