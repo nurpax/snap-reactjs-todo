@@ -2,16 +2,13 @@
 import { combineReducers } from 'redux'
 import { routerReducer } from 'react-router-redux'
 
-import {
-  RECEIVE_TODO_LIST, RECEIVE_TODO, USER_LOGGED_IN, USER_LOGGED_OUT, SET_FILTER,
-  NOTIFY_SET, NOTIFY_DISMISS
-} from './actions'
+import * as c from './constants'
 
 function receiveTodos (state = [], action) {
   switch (action.type) {
-    case RECEIVE_TODO_LIST:
+    case c.RECEIVE_TODO_LIST:
       return action.data
-    case RECEIVE_TODO:
+    case c.RECEIVE_TODO:
       let existingItem = false
       let newState =
         state.map(function (todo) {
@@ -32,26 +29,26 @@ function receiveTodos (state = [], action) {
 }
 
 const userReducer = (state = JSON.parse(localStorage.getItem('token')) || null, { type, payload }) => {
-  if (type === USER_LOGGED_IN) {
+  if (type === c.USER_LOGGED_IN) {
     return payload
   }
-  if (type === USER_LOGGED_OUT) {
+  if (type === c.USER_LOGGED_OUT) {
     return null
   }
   return state
 }
 
 const filterReducer = (state = 'active', { type, data }) => {
-  if (type === SET_FILTER) {
+  if (type === c.SET_FILTER) {
     return data
   }
   return state
 }
 
 const notifyReducer = (state = null, { type, data }) => {
-  if (type === NOTIFY_SET) {
+  if (type === c.NOTIFY_SET) {
     return data
-  } else if (type === NOTIFY_DISMISS) {
+  } else if (type === c.NOTIFY_DISMISS) {
     return null
   }
   return state
