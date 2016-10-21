@@ -17,6 +17,33 @@ class Choose extends Component {
     onChange: PropTypes.func.isRequired
   }
 
+  static baseButtonStyle = {
+    color: '#777',
+    width: '44px',
+    fontSize: '11px',
+    paddingTop: '4px',
+    paddingBottom: '4px',
+    paddingLeft: '4px',
+    paddingRight: '4px',
+    borderRadius: '4px',
+    display: 'inline-block',
+    textAlign: 'center',
+    textDecoration: 'none',
+    textTransform: 'uppercase'
+
+  }
+  static inactiveButtonStyle = {
+    border: '0px solid #fff',
+    marginLeft: '1px', // adjust left & right for border width
+    marginRight: '1px',
+    ...Choose.baseButtonStyle
+  }
+
+  static activeButtonStyle = {
+    border: '1px solid #bbb',
+    ...Choose.baseButtonStyle
+  }
+
   state = { selected: 0 }
 
   onAnchorClick = (e) => {
@@ -27,15 +54,11 @@ class Choose extends Component {
   }
 
   render () {
-    let last = this.props.choices.length - 1
     let links = this.props.choices.map(function (name, idx) {
       let link = this.state.selected === idx
-        ? <span>{name}</span>
-        : <a data-id={idx} onClick={this.onAnchorClick} href='#'>{name}</a>
-      if (idx === last) {
-        return (<span key={idx}>{link}</span>)
-      }
-      return (<span key={idx}>{link} | </span>)
+        ? <span style={Choose.activeButtonStyle} >{name}</span>
+        : <a style={Choose.inactiveButtonStyle} data-id={idx} onClick={this.onAnchorClick} href='#'>{name}</a>
+      return <span key={idx}>{link}</span>
     }, this)
     return <span>{links}</span>
   }
@@ -119,11 +142,11 @@ class App extends Component {
     return (
       <Layout user={this.props.user}>
         <h2>Todos</h2>
+        <p><strong>Show: </strong><Choose onChange={this.handleFilterChange} choices={filterChoices} /></p><br />
         <ul className='todos'>
           {todos}
         </ul>
         <NewTodoForm saveTodo={saveTodo} />
-        <p>Show: <Choose onChange={this.handleFilterChange} choices={filterChoices} /></p>
       </Layout>
     )
   }
