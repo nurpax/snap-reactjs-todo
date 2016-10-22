@@ -12,10 +12,7 @@ export const getSortedTodos = createSelector(
   [ getTodos, getFilter ],
   (todos, filter) => {
     return sorted(todos, function (a, b) {
-      if (a.completed === b.completed) {
-        return a.savedOn >= b.savedOn
-      }
-      return a.completed >= b.completed
+      return a.completed - b.completed || a.savedOn - b.savedOn
     }).filter(todo => {
       if (filter === 'active') {
         return !todo.completed
