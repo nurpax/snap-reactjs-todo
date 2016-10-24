@@ -14,11 +14,13 @@ export default class TodoItem extends Component {
   };
 
   render () {
-    let todo = this.props.todo
-    let completedClass = todo.completed ? 'completed' : ''
+    let { completed, text, savedOn } = this.props.todo
     return (
-      <li onClick={this.onClick} className={completedClass}>
-        {todo.text} <small className='date'>{todo.savedOn}</small>
+      <li className={completed ? 'completed' : ''}>
+        <label>
+          <input onClick={this.onClick} type='checkbox' checked={completed} />
+          <span className='label-body'> {text} <small className='date'>{savedOn}</small></span>
+        </label>
       </li>
     )
   }

@@ -8,10 +8,7 @@ class FilterLink extends Component {
     color: '#777',
     width: '44px',
     fontSize: '11px',
-    paddingTop: '4px',
-    paddingBottom: '4px',
-    paddingLeft: '4px',
-    paddingRight: '4px',
+    padding: '4px 4px 4px 4px',
     borderRadius: '4px',
     display: 'inline-block',
     textAlign: 'center',
@@ -19,9 +16,7 @@ class FilterLink extends Component {
     textTransform: 'uppercase'
   }
   inactiveButtonStyle = {
-    border: '0px solid #fff',
-    marginLeft: '1px', // adjust left & right for border width
-    marginRight: '1px',
+    border: '1px solid #fff',
     ...this.baseButtonStyle
   }
 
