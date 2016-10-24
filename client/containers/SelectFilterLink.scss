@@ -1,0 +1,21 @@
+:local(.base) {
+    color: #777;
+    width: 44px;
+    font-size: 11px;
+    padding: 4px 4px 4px 4px;
+    border-radius: 4px;
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+:local(a.inactive), :local(a.inactive:hover) {
+    @extend :local(.base);
+    border: 1px solid #fff
+}
+
+:local(a.active), :local(a.active:hover) {
+    @extend :local(.base);
+    border: 1px solid #bbb;
+}

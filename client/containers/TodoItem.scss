@@ -1,0 +1,14 @@
+
+li.completed {
+    text-decoration: line-through;
+    color: #AAA;
+}
+
+small.date {
+    font-size: 0.7em;
+    color:#444;
+}
+
+li.completed small.date {
+    color:#AAA;
+}

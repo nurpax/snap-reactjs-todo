@@ -3,32 +3,14 @@ import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 import { setFilter } from '../actions'
 
-class FilterLink extends Component {
-  baseButtonStyle = {
-    color: '#777',
-    width: '44px',
-    fontSize: '11px',
-    padding: '4px 4px 4px 4px',
-    borderRadius: '4px',
-    display: 'inline-block',
-    textAlign: 'center',
-    textDecoration: 'none',
-    textTransform: 'uppercase'
-  }
-  inactiveButtonStyle = {
-    border: '1px solid #fff',
-    ...this.baseButtonStyle
-  }
+import styles from './SelectFilterLink.scss'
 
-  activeButtonStyle = {
-    border: '1px solid #bbb',
-    ...this.baseButtonStyle
-  }
+class FilterLink extends Component {
 
   static propTypes = {
-    filter: React.PropTypes.string.isRequired,
-    setFilter: React.PropTypes.func.isRequired,
-    selectedFilter: React.PropTypes.string.isRequired
+    filter: PropTypes.string.isRequired,
+    setFilter: PropTypes.func.isRequired,
+    selectedFilter: PropTypes.string.isRequired
   }
 
   constructor (props) {
@@ -42,9 +24,9 @@ class FilterLink extends Component {
   }
 
   render () {
-    let style = this.props.filter === this.props.selectedFilter ? this.activeButtonStyle : this.inactiveButtonStyle
+    let buttonClass = this.props.filter === this.props.selectedFilter ? styles.active : styles.inactive
     return (
-      <a style={style} onClick={this.handleClick} href='#'>{this.props.filter}</a>
+      <a className={buttonClass} onClick={this.handleClick} href='#'>{this.props.filter}</a>
     )
   }
 }

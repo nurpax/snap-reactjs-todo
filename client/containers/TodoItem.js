@@ -1,13 +1,15 @@
 
 import React, { Component, PropTypes } from 'react'
 
+import styles from './TodoItem.scss'
+
 export default class TodoItem extends Component {
   static propTypes = {
     todo: PropTypes.object.isRequired,
     saveTodo: PropTypes.func.isRequired
   }
 
-  onClick = (e) => {
+  handleChange = (e) => {
     e.preventDefault()
     let todo = this.props.todo
     this.props.saveTodo({...todo, completed: !todo.completed})
@@ -16,10 +18,10 @@ export default class TodoItem extends Component {
   render () {
     let { completed, text, savedOn } = this.props.todo
     return (
-      <li className={completed ? 'completed' : ''}>
+      <li className={completed ? styles.completed : ''}>
         <label>
-          <input onClick={this.onClick} type='checkbox' checked={completed} />
-          <span className='label-body'> {text} <small className='date'>{savedOn}</small></span>
+          <input onChange={this.handleChange} type='checkbox' checked={completed} />
+          <span className='label-body'> {text} <small className={styles.date}>{savedOn}</small></span>
         </label>
       </li>
     )
