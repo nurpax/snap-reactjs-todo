@@ -9,7 +9,7 @@ function receiveTodos (state = [], action) {
   switch (action.type) {
     case c.RECEIVE_TODO_LIST:
       return action.data
-    case c.RECEIVE_TODO:
+    case c.RECEIVE_TODO: {
       let existingItem = false
       let newState =
         state.map(function (todo) {
@@ -24,6 +24,7 @@ function receiveTodos (state = [], action) {
         return state.concat(action.data)
       }
       return newState
+    }
     default:
       return state
   }
