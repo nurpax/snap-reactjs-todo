@@ -36,7 +36,7 @@ class Choose extends Component {
         return (<span key={idx}>{link}</span>)
       }
       return (<span key={idx}>{link} | </span>)
-    }.bind(this))
+    }, this)
     return <span>{links}</span>
   }
 
