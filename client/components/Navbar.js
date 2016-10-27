@@ -32,18 +32,15 @@ export default class Navbar extends Component {
       <Nli className={s.dropdown}>
         <Link to='/login' className={s.dropbtn}>Profile</Link>
         <div className={s.dropdownContent}>
-          <Link to='/login' className={s.dropbtn}>Login</Link>
+          <Link to='/login'>Login</Link>
           <Link to='/signup'>Sign Up</Link>
         </div>
       </Nli>
     )
   }
+
   userMenu () {
-    if (this.props.user) {
-      return this.loggedInUserMenu()
-    } else {
-      return this.loggedOutUserMenu()
-    }
+    return this.props.user ? this.loggedInUserMenu() : this.loggedOutUserMenu()
   }
 
   render () {
