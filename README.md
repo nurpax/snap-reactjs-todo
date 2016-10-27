@@ -2,7 +2,9 @@
 
 A todo app example built using React+Redux running on a Haskell Snap server.
 
-Implements JWT-based authentication for REST API entry points.
+Implements JWT-based authentication for REST API entry points.  The frontend uses `react-router`, `react-redux-router` and `redux-auth-wrapper` for managing authenticated routes and logged-in state.
+
+This was not intended as a "boilerplate" project, so some features like hot-loading are missing.  But it does implement a reasonably nice webpack config with ES6+ usage with React, CSS modules and reasonable defaults for eslint.
 
 ## Running the app
 
