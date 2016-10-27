@@ -1,5 +1,7 @@
 
 /* eslint camelcase: 0 */
+/*eslint no-console: ["error", { allow: ["warn", "error"] }] */
+
 import fetch from 'isomorphic-fetch'
 import jwt_decode from 'jwt-decode'
 
@@ -49,7 +51,7 @@ function doLoginRequest (newUser, params) {
     })
     .then(response => checkLogin(dispatch, response, doLogin, params.notify))
     .catch(function (error) {
-      console.log('request failed', error)
+      console.warn('unknown error in handling login request', error)
     })
   }
 }

@@ -8,6 +8,7 @@ import Main from './Main'
 import App from './App'
 import Login from './Login'
 import SignUp from './SignUp'
+import Profile from './Profile'
 
 import configureStore from '../configureStore'
 
@@ -26,6 +27,7 @@ const Root = () => (
       <Route path='/' component={Main} />
       <Route path='/todos' component={UserIsAuthenticated(App)} />
       <Route path='/login' component={Login} />
+      <Route path='/profile' component={UserIsAuthenticated(Profile)} />
       <Route path='/signup' component={SignUp} />
     </Router>
   </Provider>

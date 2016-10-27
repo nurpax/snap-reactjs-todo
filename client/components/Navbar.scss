@@ -1,0 +1,62 @@
+
+:local(ul.nav) {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    margin-bottom:15px;
+    text-transform: uppercase;
+    background-color:#fafafa;
+}
+
+:local(li.nav) {
+    float: left;
+}
+
+:local(li.nav a), :local(.dropbtn) {
+    display: inline-block;
+    color: #222;
+    text-align: center;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    padding-left: 10px;
+    padding-right: 10px;
+    text-decoration:none;
+    min-width:80px;
+}
+
+:local(li.nav) :local(a:hover), :local(.dropdown):hover :local(.dropbtn) {
+    background-color: #f4f4f4;
+    border-radius: 5px;
+}
+
+:local(li.dropdown) {
+    display: inline-block;
+}
+
+:local(.dropdownContent) {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+
+:local(div.dropdownContent) a {
+    color: #222;
+    padding: 12px 16px;
+    text-decoration: none;
+    text-transform: none;
+    display: block;
+    text-align: left;
+}
+
+:local(div.dropdownContent) a:hover {
+    background-color: #e1e1e1;
+}
+
+:local(.dropdown):hover :local(.dropdownContent) {
+    display: block;
+}
