@@ -7,6 +7,7 @@ import { UserAuthWrapper } from 'redux-auth-wrapper'
 import Main from './Main'
 import App from './App'
 import Login from './Login'
+import SignUp from './SignUp'
 
 import configureStore from '../configureStore'
 
@@ -25,6 +26,7 @@ const Root = () => (
       <Route path='/' component={Main} />
       <Route path='/todos' component={UserIsAuthenticated(App)} />
       <Route path='/login' component={Login} />
+      <Route path='/signup' component={SignUp} />
     </Router>
   </Provider>
 )

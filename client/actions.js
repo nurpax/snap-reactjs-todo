@@ -27,18 +27,22 @@ function checkLogin (dispatch, response, doLogin) {
   // TODO throw unknown error here
 }
 
+function setJwt (dispatch, token) {
+  let tok = jwt_decode(token)
+  // Keep the original jwt token for sending it back to the server in
+  // fetch headers
+  tok.token = token
+  localStorage.setItem('token', JSON.stringify(tok))
+  dispatch({
+    type: USER_LOGGED_IN,
+    payload: tok
+  })
+}
+
 export function login (login, pass) {
   return function (dispatch) {
     function doLogin (json) {
-      let tok = jwt_decode(json.token)
-      // Keep the original jwt token for sending it back to the server in
-      // fetch headers
-      tok.token = json.token
-      localStorage.setItem('token', JSON.stringify(tok))
-      dispatch({
-        type: USER_LOGGED_IN,
-        payload: tok
-      })
+      setJwt(dispatch, json.token)
     }
     return fetch('/api/login', {
       method: 'POST',
@@ -49,6 +53,26 @@ export function login (login, pass) {
       body: JSON.stringify({login, pass})
     })
     .then(response => checkLogin(dispatch, response, doLogin))
+    .catch(function (error) {
+      console.log('request failed', error)
+    })
+  }
+}
+
+export function signUp (login, pass) {
+  return function (dispatch) {
+    function doSignUp (json) {
+      setJwt(dispatch, json.token)
+    }
+    return fetch('/api/login/new', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({login, pass})
+    })
+    .then(response => checkLogin(dispatch, response, doSignUp))
     .catch(function (error) {
       console.log('request failed', error)
     })

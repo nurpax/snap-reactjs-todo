@@ -11,9 +11,10 @@ export default class Layout extends Component {
     isLoginScreen: PropTypes.bool
   }
   render () {
+    let signup = <Link to='/signup'>Sign Up</Link>
     let login = this.props.user
       ? null
-      : <Link to='/login'>Sign In</Link>
+      : <span><Link to='/login'>Sign In</Link> | {signup}</span>
     let logout = this.props.user
       ? <span><LogoutLink to='/'>Log out</LogoutLink> (logged in as {this.props.user.login})</span>
       : null
