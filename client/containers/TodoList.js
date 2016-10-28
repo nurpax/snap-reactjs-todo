@@ -4,6 +4,8 @@ import { connect } from 'react-redux'
 import { fetchTodos, saveTodo } from '../actions'
 import { getSortedTodos } from '../selectors'
 
+import styles from './TodoList.scss'
+
 import Layout from '../components/Layout'
 import TodoItem from './TodoItem'
 import SelectFilterLink from './SelectFilterLink'
@@ -74,7 +76,7 @@ class TodoList extends Component {
         <p><strong>Show: </strong>
           {filterChoices.map(f => <SelectFilterLink key={f} filter={f} />)}
         </p>
-        <ul className='todos'>
+        <ul className={styles.todos}>
           {todos}
         </ul>
         <NewTodoForm saveTodo={saveTodo} />

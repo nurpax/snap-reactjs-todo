@@ -1,6 +1,9 @@
 
 import React, { Component, PropTypes } from 'react'
 
+// eslint-disable-next-line no-unused-vars
+import globalStyles from './Layout.scss'
+
 import Navbar from './Navbar'
 
 export default class Layout extends Component {
