@@ -162,9 +162,8 @@ loginUser login pass = do
 
 parseBearerJwt :: ByteString -> Either String T.Text
 parseBearerJwt s =
-  AP.parseOnly parser s -- (parser <* AP.endOfInput) s
+  AP.parseOnly (AP.string "Bearer " *> payload) s
   where
-    parser = AP.string "Bearer " *> payload
     payload = LT.decodeUtf8 <$> AP.takeWhile1 (AP.inClass base64)
     base64 = "A-Za-z0-9+/_=.-"
 
