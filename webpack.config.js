@@ -30,20 +30,6 @@ var config = {
       },
 
       {
-        test: /\.css$/,
-        loader: ExtractTextPlugin.extract(
-          'style-loader',
-          combineLoaders([{
-            loader: 'css-loader',
-            query: {
-              modules: true,
-              localIdentName: '[name]__[local]___[hash:base64:5]'
-            }
-          }])
-        )
-      },
-
-      {
         test: /\.scss$/,
         loader: ExtractTextPlugin.extract(
           'style-loader',

@@ -1,5 +1,5 @@
 
-:local(ul.nav) {
+ul.nav {
     list-style-type: none;
     margin: 0;
     padding: 0;
@@ -11,11 +11,11 @@
     background-color:#fafafa;
 }
 
-:local(li.nav) {
+li.nav {
     float: left;
 }
 
-:local(li.nav a), :local(.dropbtn) {
+li.nav a, .dropbtn {
     display: inline-block;
     color: #222;
     text-align: center;
@@ -27,16 +27,16 @@
     min-width:80px;
 }
 
-:local(li.nav) :local(a:hover), :local(.dropdown):hover :local(.dropbtn) {
+li.nav a:hover, .dropdown:hover .dropbtn {
     background-color: #f4f4f4;
     border-radius: 5px;
 }
 
-:local(li.dropdown) {
+li.dropdown {
     display: inline-block;
 }
 
-:local(.dropdownContent) {
+.dropdownContent {
     display: none;
     position: absolute;
     background-color: #f9f9f9;
@@ -44,7 +44,7 @@
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 }
 
-:local(div.dropdownContent) a {
+div.dropdownContent a {
     color: #222;
     padding: 12px 16px;
     text-decoration: none;
@@ -53,10 +53,10 @@
     text-align: left;
 }
 
-:local(div.dropdownContent) a:hover {
+div.dropdownContent a:hover {
     background-color: #e1e1e1;
 }
 
-:local(.dropdown):hover :local(.dropdownContent) {
+.dropdown:hover .dropdownContent {
     display: block;
 }
