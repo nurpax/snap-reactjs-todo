@@ -5,7 +5,7 @@ import { syncHistoryWithStore, routerActions } from 'react-router-redux'
 import { UserAuthWrapper } from 'redux-auth-wrapper'
 
 import Main from './Main'
-import App from './App'
+import TodoList from './TodoList'
 import Login from './Login'
 import SignUp from './SignUp'
 import Profile from './Profile'
@@ -25,7 +25,7 @@ const Root = () => (
   <Provider store={store}>
     <Router history={history}>
       <Route path='/' component={Main} />
-      <Route path='/todos' component={UserIsAuthenticated(App)} />
+      <Route path='/todos' component={UserIsAuthenticated(TodoList)} />
       <Route path='/login' component={Login} />
       <Route path='/profile' component={UserIsAuthenticated(Profile)} />
       <Route path='/signup' component={SignUp} />

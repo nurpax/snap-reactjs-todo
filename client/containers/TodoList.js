@@ -52,7 +52,7 @@ class NewTodoForm extends Component {
   }
 }
 
-class App extends Component {
+class TodoList extends Component {
   static propTypes = {
     loadTodoList: PropTypes.func.isRequired,
     saveTodo: PropTypes.func.isRequired,
@@ -101,4 +101,4 @@ function mapStateToProps (state) {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(App)
+export default connect(mapStateToProps, mapDispatchToProps)(TodoList)
