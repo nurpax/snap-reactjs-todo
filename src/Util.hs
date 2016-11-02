@@ -20,8 +20,8 @@ import qualified Data.Text.Encoding as T
 
 import           Snap.Core
 import           Snap.Snaplet
-import qualified Snap.Snaplet.SqliteJwt as J
-import           Snap.Snaplet.SqliteJwt (jsonResponse, reqJSON)
+import qualified Snap.Snaplet.SqliteSimple.JwtAuth as J
+import           Snap.Snaplet.SqliteSimple.JwtAuth (jsonResponse, reqJSON)
 import           Application
 
 class ConvertParam c where

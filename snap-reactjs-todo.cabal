@@ -19,7 +19,7 @@ flag development
 executable snap-reactjs-todo
   hs-source-dirs:      src src/Snap/Snaplet
   main-is:             Main.hs
-  other-modules:       Application Db Site Util Snap.Snaplet.SqliteJwt
+  other-modules:       Application Db Site Util Snap.Snaplet.SqliteSimple.JwtAuth
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:
     aeson,

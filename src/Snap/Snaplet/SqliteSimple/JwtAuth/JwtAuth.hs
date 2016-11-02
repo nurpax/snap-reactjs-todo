@@ -10,7 +10,7 @@ simple.
 
 -}
 
-module Snap.Snaplet.SqliteJwt (
+module Snap.Snaplet.SqliteSimple.JwtAuth.JwtAuth (
   -- * The Snaplet
     SqliteJwt(..)
   -- * Types

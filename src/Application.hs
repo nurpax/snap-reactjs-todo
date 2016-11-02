@@ -12,7 +12,7 @@ module Application where
 import Control.Lens
 import Snap
 import Snap.Snaplet.SqliteSimple
-import Snap.Snaplet.SqliteJwt
+import Snap.Snaplet.SqliteSimple.JwtAuth
 
 ------------------------------------------------------------------------------
 data App = App

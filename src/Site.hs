@@ -24,7 +24,7 @@ import qualified Data.Text.Read as T
 import           Data.Time (UTCTime)
 import           Snap.Core
 import           Snap.Snaplet
-import qualified Snap.Snaplet.SqliteJwt as J
+import qualified Snap.Snaplet.SqliteSimple.JwtAuth as J
 import           Snap.Snaplet.SqliteSimple
 import           Snap.Util.FileServe
 import qualified Web.JWT as JWT
