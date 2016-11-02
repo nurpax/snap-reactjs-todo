@@ -13,13 +13,21 @@ simple.
 module Snap.Snaplet.SqliteJwt (
   -- * The Snaplet
     SqliteJwt(..)
+  -- * Types
   , User(..) -- TODO this shouldn't be exposed
   , AuthFailure(..)
   , sqliteJwtInit
-  , createUser
-  , jwtFromUser
-  , loginUser
+  -- * High-level handlers
   , requireAuth
+  , registerUser
+  , loginUser
+  -- * Lower
+  , createUser
+  , login
+  -- * Utility functions
+  , jsonResponse
+  , writeJSON
+  , reqJSON
 --  , validateUser
   ) where
 
@@ -40,16 +48,22 @@ import           Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.Configurator as C
+import           Data.Int (Int64)
 import           Data.Maybe
 import           Data.Map as M
 import           Data.HashMap.Strict as HM
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as LT
 import qualified Data.Text.Encoding as LT
 import qualified Database.SQLite.Simple as S
 import           Snap
 import           Snap.Snaplet.SqliteSimple
 import qualified Web.JWT as JWT
+
+data SqliteJwt = SqliteJwt {
+    sqliteJwtConn :: MVar S.Connection
+  }
 
 data User = User {
     userId    :: Int
@@ -62,6 +76,17 @@ instance FromJSON User where
 
 instance ToJSON User where
   toJSON (User i l) = object [ "id" .= i, "login" .= l ]
+
+data LoginParams = LoginParams {
+    lpLogin :: T.Text
+  , lpPass  :: T.Text
+  }
+
+instance FromJSON LoginParams where
+  parseJSON (Object v) = LoginParams <$>
+                         v .: "login" <*>
+                         v .: "pass"
+  parseJSON _          = mzero
 
 -- Used only internally in this module, shouldn't expose as this contains the
 -- hashed password.
@@ -80,9 +105,7 @@ data AuthFailure =
   | WrongPassword
   deriving (Eq, Show)
 
-data SqliteJwt = SqliteJwt
-    { sqliteJwtConn :: MVar S.Connection
-    }
+data HttpError = HttpError Int String
 
 bcryptPolicy = BC.fastBcryptHashingPolicy
 
@@ -96,6 +119,61 @@ userTable :: T.Text
 userTable = T.concat [jwtAuthTable, "_user"]
 
 type H a b = Handler a SqliteJwt b
+
+--runHttpErrorExceptT :: ExceptT HttpError H (H ()) -> Handler b SqliteJwt ()
+runHttpErrorExceptT :: ExceptT HttpError (Handler b SqliteJwt) (Handler b SqliteJwt ()) -> Handler b SqliteJwt ()
+runHttpErrorExceptT e = runExceptT e >>= either err id
+  where
+    err (HttpError errCode msg) = do
+      let m = T.encodeUtf8 . T.pack $ msg
+      logError m
+      finishEarly errCode m
+
+jsonResponse :: MonadSnap m => m ()
+jsonResponse = modifyResponse $ setHeader "Content-Type" "application/json"
+
+writeJSON :: (MonadSnap m, ToJSON a) => a -> m ()
+writeJSON a = do
+  jsonResponse
+  writeLBS . encode $ a
+
+-------------------------------------------------------------------------------
+-- | Demand the presence of JSON in the body assuming it is not larger
+-- than 50000 bytes.
+reqJSON :: (MonadSnap m, FromJSON b) => m b
+reqJSON = reqBoundedJSON 50000
+
+-------------------------------------------------------------------------------
+-- | Demand the presence of JSON in the body with a size up to N
+-- bytes. If parsing fails for any reson, request is terminated early
+-- and a server error is returned.
+reqBoundedJSON
+    :: (MonadSnap m, FromJSON a)
+    => Int64
+    -- ^ Maximum size in bytes
+    -> m a
+reqBoundedJSON n = do
+  res <- getBoundedJSON n
+  case res of
+    Left e -> finishEarly 400 (BS8.pack e)
+    Right a -> return a
+
+-------------------------------------------------------------------------------
+-- | Parse request body into JSON or return an error string.
+getBoundedJSON
+    :: (MonadSnap m, FromJSON a)
+    => Int64
+    -- ^ Maximum size in bytes
+    -> m (Either String a)
+getBoundedJSON n = do
+  bodyVal <- decode `fmap` readRequestBody (fromIntegral n)
+  liftIO $ putStrLn (show bodyVal)
+  return $ case bodyVal of
+    Nothing -> Left "Can't find JSON data in POST body"
+    Just v -> case fromJSON v of
+                Error e -> Left e
+                Success a -> Right a
+
 
 ------------------------------------------------------------------------------
 -- | Initialize the snaplet
@@ -125,12 +203,12 @@ qconcat = S.Query . T.concat
 fromDbUser :: DbUser -> User
 fromDbUser (DbUser i l _) = User i l
 
-queryUser :: T.Text -> H b (Maybe DbUser)
+queryUser :: T.Text -> Handler b SqliteJwt (Maybe DbUser)
 queryUser login = do
   querySingle (qconcat ["SELECT uid,login,password FROM ", userTable, " WHERE login=?"])
     (Only login)
 
-createUser :: T.Text -> T.Text -> H b (Either AuthFailure User)
+createUser :: T.Text -> T.Text -> Handler b SqliteJwt (Either AuthFailure User)
 createUser login pass = do
   user <- queryUser login
   case user of
@@ -143,8 +221,8 @@ createUser login pass = do
     Just _ ->
       return (Left DuplicateLogin)
 
-loginUser :: T.Text -> T.Text -> H b (Either AuthFailure User)
-loginUser login pass = do
+login :: T.Text -> T.Text -> Handler b SqliteJwt (Either AuthFailure User)
+login login pass = do
   user <- queryUser login
   case user of
     Nothing ->
@@ -170,15 +248,15 @@ parseBearerJwt s =
 
 -- | Discard anything after this and return given status code to HTTP
 -- client immediately.
-finishEarly :: MonadSnap m => Int -> String -> m b
+finishEarly :: MonadSnap m => Int -> ByteString -> m b
 finishEarly code str = do
-  modifyResponse $ setResponseStatus code (BS8.pack str)
+  modifyResponse $ setResponseStatus code str
   modifyResponse $ addHeader "Content-Type" "text/plain"
-  writeBS (BS8.pack str)
+  writeBS str
   getResponse >>= finishWith
 
 -- TODO use a config parameter for site_secret
-jwtFromUser :: User -> H b JWT.JSON
+jwtFromUser :: User -> Handler b SqliteJwt JWT.JSON
 jwtFromUser (User uid login) = do
   let cs = JWT.def {
             JWT.unregisteredClaims = M.fromList [("id", Number (fromIntegral uid)), ("login", String login)]
@@ -187,7 +265,7 @@ jwtFromUser (User uid login) = do
   return $ JWT.encodeSigned JWT.HS256 key cs
 
 -- Authorize against JWT and run the user action if JWT verification succeeds.
-requireAuth :: (User -> H b a) -> H b a
+requireAuth :: (User -> Handler b SqliteJwt a) -> Handler b SqliteJwt a
 requireAuth action = do
   -- TODO add configuration options + document how to generate it
   let siteSecret = JWT.secret "site_secret"
@@ -201,9 +279,47 @@ requireAuth action = do
     -- TODO verify expiration too
     user        <- hoistEither . parseEither parseJSON $ (toObject unregClaims)
     return user
-  either (finishEarly 401) action res
+  either (finishEarly 401 . BS8.pack) action res
   where
     toObject = Object . HM.fromList . M.toList
+
+handleLoginError :: AuthFailure -> H b ()
+handleLoginError err =
+  case err of
+    DuplicateLogin -> failLogin dupeError
+    UnknownUser    -> failLogin failedPassOrUserError
+    WrongPassword  -> failLogin failedPassOrUserError
+  where
+    dupeError             = "Duplicate login"
+    failedPassOrUserError = "Unknown user or wrong password"
+
+    failLogin :: T.Text -> H b ()
+    failLogin err = do
+      jsonResponse
+      modifyResponse $ setResponseStatus 401 "bad login"
+      writeJSON $ object [ "error" .= err]
+
+loginOK :: User -> Handler b SqliteJwt ()
+loginOK user = do
+  jwt <- jwtFromUser user
+  writeJSON $ object [ "token" .= jwt ]
+
+registerUser :: Handler b SqliteJwt ()
+registerUser = method POST newUser
+  where
+    newUser = runHttpErrorExceptT $ do
+      params     <- lift reqJSON
+      userOrErr  <- lift $ createUser (lpLogin params) (lpPass params)
+      return (either handleLoginError loginOK userOrErr)
+
+loginUser :: Handler b SqliteJwt ()
+loginUser = method POST go
+  where
+    go = runHttpErrorExceptT $ do
+      params     <- lift reqJSON
+      userOrErr  <- lift $ login (lpLogin params) (lpPass params)
+      return (either handleLoginError loginOK userOrErr)
+
 
 schemaVersion :: S.Connection -> IO Int
 schemaVersion conn = do

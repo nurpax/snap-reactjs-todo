@@ -35,17 +35,6 @@ import           Util
 
 type H = Handler App App
 
-data LoginParams = LoginParams {
-    lpLogin :: T.Text
-  , lpPass  :: T.Text
-  }
-
-instance FromJSON LoginParams where
-  parseJSON (Object v) = LoginParams <$>
-                         v .: "login" <*>
-                         v .: "pass"
-  parseJSON _          = mzero
-
 data PostTodoParams = PostTodoParams {
     ptId        :: Maybe Int
   , ptSavedOn   :: Maybe UTCTime
@@ -62,10 +51,6 @@ instance ToJSON Db.Todo where
                     , "savedOn"   .= Db.todoSavedOn c
                     , "completed" .= Db.todoCompleted c
                     , "text"      .= Db.todoText c]
-
-maybeWhen :: Monad m => Maybe a -> (a -> m ()) -> m ()
-maybeWhen Nothing _  = return ()
-maybeWhen (Just a) f = f a
 
 handleRestTodos :: H ()
 handleRestTodos = (method GET listTodos) <|> (method POST saveTodo)
@@ -95,49 +80,11 @@ handleRestTodos = (method GET listTodos) <|> (method POST saveTodo)
       res <- with jwt $ J.requireAuth action
       writeJSON res
 
-
-handleLoginError :: J.AuthFailure -> H ()
-handleLoginError err =
-  case err of
-    J.DuplicateLogin -> failLogin dupeError
-    J.UnknownUser    -> failLogin failedPassOrUserError
-    J.WrongPassword  -> failLogin failedPassOrUserError
-  where
-    dupeError             = "Duplicate login"
-    failedPassOrUserError = "Unknown user or wrong password"
-
-    failLogin :: T.Text -> H ()
-    failLogin err = do
-      jsonResponse
-      modifyResponse $ setResponseStatus 401 "bad login"
-      writeJSON $ object [ "error" .= err]
-
-loginOK :: J.User -> H ()
-loginOK user = do
-  jwt <- with jwt $ J.jwtFromUser user
-  writeJSON $ object [ "token" .= jwt ]
-
-handleNewUser :: H ()
-handleNewUser = method POST newUser
-  where
-    newUser = runHttpErrorExceptT $ do
-      login      <- lift reqJSON
-      userOrErr  <- lift $ with jwt $ J.createUser (lpLogin login) (lpPass login)
-      return (either handleLoginError loginOK userOrErr)
-
-handleLogin :: H ()
-handleLogin = method POST go
-  where
-    go = runHttpErrorExceptT $ do
-      login      <- lift reqJSON
-      userOrErr  <- lift $ with jwt $ J.loginUser (lpLogin login) (lpPass login)
-      return (either handleLoginError loginOK userOrErr)
-
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
 routes = [
-           ("/api/login/new",  handleNewUser)
-         , ("/api/login",      handleLogin)
+           ("/api/login/new",  with jwt $ J.registerUser)
+         , ("/api/login",      with jwt $ J.loginUser)
          , ("/api/todo",       handleRestTodos)
          , ("/static",         serveDirectory "static")
          , ("/",               serveFile "static/index.html")

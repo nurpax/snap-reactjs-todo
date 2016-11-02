@@ -20,6 +20,8 @@ import qualified Data.Text.Encoding as T
 
 import           Snap.Core
 import           Snap.Snaplet
+import qualified Snap.Snaplet.SqliteJwt as J
+import           Snap.Snaplet.SqliteJwt (jsonResponse, reqJSON)
 import           Application
 
 class ConvertParam c where
@@ -41,17 +43,10 @@ logRunEitherT :: ExceptT String H (H ()) -> H ()
 logRunEitherT e = runExceptT e >>= logFail
 
 -------------------------------------------------------------------------------
--- | Mark response as 'application/json'
-jsonResponse :: MonadSnap m => m ()
-jsonResponse = modifyResponse $ setHeader "Content-Type" "application/json"
-
--------------------------------------------------------------------------------
 -- | Set MIME to 'application/json' and write given object into
 -- 'Response' body.
 writeJSON :: (MonadSnap m, A.ToJSON a) => a -> m ()
-writeJSON a = do
-  jsonResponse
-  writeLBS . A.encode $ a
+writeJSON = J.writeJSON
 
 -- | Discard anything after this and return given status code to HTTP
 -- client immediately.
@@ -83,41 +78,3 @@ hoistEither = ExceptT . return
 hoistHttpError :: Monad m => Either String a -> ExceptT HttpError m a
 hoistHttpError (Left m)  = hoistEither . Left . badReq $ m
 hoistHttpError (Right v) = hoistEither . Right $ v
-
--------------------------------------------------------------------------------
--- | Demand the presence of JSON in the body assuming it is not larger
--- than 50000 bytes.
-reqJSON :: (MonadSnap m, A.FromJSON b) => m b
-reqJSON = reqBoundedJSON 50000
-
--------------------------------------------------------------------------------
--- | Demand the presence of JSON in the body with a size up to N
--- bytes. If parsing fails for any reson, request is terminated early
--- and a server error is returned.
-reqBoundedJSON
-    :: (MonadSnap m, A.FromJSON a)
-    => Int64
-    -- ^ Maximum size in bytes
-    -> m a
-reqBoundedJSON n = do
-  res <- getBoundedJSON n
-  case res of
-    Left e -> finishEarly 400 "reqBoundedJSON" -- badReq e
-    Right a -> return a
-
--------------------------------------------------------------------------------
--- | Parse request body into JSON or return an error string.
-getBoundedJSON
-    :: (MonadSnap m, A.FromJSON a)
-    => Int64
-    -- ^ Maximum size in bytes
-    -> m (Either String a)
-getBoundedJSON n = do
-  bodyVal <- A.decode `fmap` readRequestBody (fromIntegral n)
-  liftIO $ putStrLn (show bodyVal)
-  return $ case bodyVal of
-    Nothing -> Left "Can't find JSON data in POST body"
-    Just v -> case A.fromJSON v of
-                A.Error e -> Left e
-                A.Success a -> Right a
-
