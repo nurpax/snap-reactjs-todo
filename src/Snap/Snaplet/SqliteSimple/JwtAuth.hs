@@ -10,7 +10,7 @@ module Snap.Snaplet.SqliteSimple.JwtAuth (
   , requireAuth
   , registerUser
   , loginUser
-  -- * Lower
+  -- * Lower-level handlers that can be used to implement a more customized login
   , createUser
   , login
   -- * Utility functions
@@ -20,4 +20,5 @@ module Snap.Snaplet.SqliteSimple.JwtAuth (
 --  , validateUser
   ) where
 
+import Snap.Snaplet.SqliteSimple.JwtAuth.Types
 import Snap.Snaplet.SqliteSimple.JwtAuth.JwtAuth
