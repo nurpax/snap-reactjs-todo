@@ -25,11 +25,8 @@ module Snap.Snaplet.SqliteSimple.JwtAuth.JwtAuth (
   , reqJSON
   ) where
 
-import           Prelude hiding (catch)
-
 ------------------------------------------------------------------------------
 import           Control.Lens hiding ((.=), (??))
-import           Control.Monad
 import           Control.Monad.Except
 import           Control.Error
 import qualified Crypto.BCrypt as BC
@@ -37,16 +34,12 @@ import           Data.Aeson
 import           Data.Aeson.Types (parseEither)
 import qualified Data.Attoparsec.ByteString.Char8 as AP
 import           Data.ByteString (ByteString)
-import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.Configurator as C
-import           Data.Int (Int64)
 import           Data.Maybe
 import           Data.Map as M
 import           Data.HashMap.Strict as HM
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified Data.Text.Lazy as LT
 import qualified Data.Text.Encoding as LT
 import           Snap
 import           Snap.Snaplet.SqliteSimple (Sqlite, sqliteConn)
@@ -56,6 +49,7 @@ import           Snap.Snaplet.SqliteSimple.JwtAuth.Util
 import           Snap.Snaplet.SqliteSimple.JwtAuth.Types
 import qualified Snap.Snaplet.SqliteSimple.JwtAuth.Db as Db
 
+bcryptPolicy :: BC.HashingPolicy
 bcryptPolicy = BC.fastBcryptHashingPolicy
 
 -------------------------------------------------------------------------
@@ -76,15 +70,15 @@ createUser
   :: T.Text -- ^ Login name of the user to be created
   -> T.Text -- ^ Password of the new user
   -> Handler b SqliteJwt (Either AuthFailure User)
-createUser login pass = do
-  user <- Db.queryUser login
+createUser loginName password = do
+  user <- Db.queryUser loginName
   case user of
     Nothing -> do
-      hashedPass <- liftIO $ BC.hashPasswordUsingPolicy bcryptPolicy (LT.encodeUtf8 pass)
+      hashedPass <- liftIO $ BC.hashPasswordUsingPolicy bcryptPolicy (LT.encodeUtf8 password)
       -- TODO don't use fromJust
-      Db.insertUser login (fromJust hashedPass)
-      user <- Db.queryUser login
-      return (Right (Db.fromDbUser . fromJust $ user))
+      Db.insertUser loginName (fromJust hashedPass)
+      u <- Db.queryUser loginName
+      return (Right (Db.fromDbUser . fromJust $ u))
     Just _ ->
       return (Left DuplicateLogin)
 
@@ -94,14 +88,14 @@ login
   :: T.Text -- ^ Login name of the user logging in
   -> T.Text -- ^ Password
   -> Handler b SqliteJwt (Either AuthFailure User)
-login login pass = do
-  user <- Db.queryUser login
+login loginName password = do
+  user <- Db.queryUser loginName
   case user of
     Nothing ->
       return (Left UnknownUser)
-    Just user -> do
-      if BC.validatePassword (Db.dbuserHashedPass user) (LT.encodeUtf8 pass) then
-        passwordOk (Db.fromDbUser user)
+    Just u -> do
+      if BC.validatePassword (Db.dbuserHashedPass u) (LT.encodeUtf8 password) then
+        passwordOk (Db.fromDbUser u)
       else
         passwordFail
 
@@ -119,9 +113,9 @@ parseBearerJwt s = AP.parseOnly (AP.string "Bearer " *> payload) s
 
 -- TODO use a config parameter for site_secret
 jwtFromUser :: User -> Handler b SqliteJwt JWT.JSON
-jwtFromUser (User uid login) = do
+jwtFromUser (User uid loginName) = do
   let cs = JWT.def {
-            JWT.unregisteredClaims = M.fromList [("id", Number (fromIntegral uid)), ("login", String login)]
+            JWT.unregisteredClaims = M.fromList [("id", Number (fromIntegral uid)), ("login", String loginName)]
           }
       key = JWT.secret "site_secret"
   return $ JWT.encodeSigned JWT.HS256 key cs

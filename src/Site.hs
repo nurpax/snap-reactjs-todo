@@ -12,22 +12,16 @@ module Site
 import           Control.Concurrent
 import           Control.Applicative
 import           Control.Monad.Except
-import           Control.Error.Safe (tryJust)
 import           Control.Lens hiding ((.=))
 import           Data.Aeson hiding (json)
-import           Data.Bifunctor (first)
 import           Data.ByteString (ByteString)
-import qualified Data.Map as M
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified Data.Text.Read as T
 import           Data.Time (UTCTime)
 import           Snap.Core
 import           Snap.Snaplet
 import qualified Snap.Snaplet.SqliteSimple.JwtAuth as J
 import           Snap.Snaplet.SqliteSimple
 import           Snap.Util.FileServe
-import qualified Web.JWT as JWT
 ------------------------------------------------------------------------------
 import           Application
 import qualified Db
@@ -56,16 +50,16 @@ handleRestTodos :: H ()
 handleRestTodos = (method GET listTodos) <|> (method POST saveTodo)
   where
     listTodos :: H ()
-    listTodos = replyJson query
+    listTodos = replyJson queryTodos
       where
-        query (J.User uid _) = do
+        queryTodos (J.User uid _) = do
           withTop db $ Db.listTodos (Db.UserId uid)
 
     saveTodo = do
       ps <- reqJSON
-      replyJson (query ps)
+      replyJson (queryTodo ps)
       where
-        query ps (J.User uid _) =
+        queryTodo ps (J.User uid _) =
           -- If the input todo id is Nothing, create a new todo.  Otherwise update
           -- an existing one.
           case ptId ps of
