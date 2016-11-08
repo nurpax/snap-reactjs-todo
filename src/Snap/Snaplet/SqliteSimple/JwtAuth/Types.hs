@@ -5,7 +5,6 @@ module Snap.Snaplet.SqliteSimple.JwtAuth.Types where
 import           Control.Concurrent
 import           Control.Monad
 import           Data.Aeson
-import           Data.ByteString
 import qualified Data.Text as T
 import           Database.SQLite.Simple
 import           Snap

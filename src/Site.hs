@@ -40,12 +40,6 @@ instance FromJSON PostTodoParams where
   parseJSON (Object v) = PostTodoParams <$> optional (v.: "id") <*> optional (v .: "savedOn") <*> v .: "completed" <*> v .: "text"
   parseJSON _          = mzero
 
-instance ToJSON Db.Todo where
-  toJSON c = object [ "id"        .= Db.todoId c
-                    , "savedOn"   .= Db.todoSavedOn c
-                    , "completed" .= Db.todoCompleted c
-                    , "text"      .= Db.todoText c]
-
 handleRestTodos :: H ()
 handleRestTodos = (method GET listTodos) <|> (method POST saveTodo)
   where

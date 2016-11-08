@@ -9,9 +9,8 @@ module Db (
   , saveTodo
   , listTodos) where
 
-import           Control.Applicative
 import           Control.Monad
-import           Control.Monad.IO.Class (liftIO)
+import           Data.Aeson (ToJSON, toJSON, (.=), object)
 import qualified Data.Text as T
 import           Data.Time (UTCTime)
 import qualified Database.SQLite.Simple as S
@@ -33,6 +32,13 @@ data Todo = Todo
 
 instance FromRow Todo where
   fromRow = Todo <$> field <*> field <*> field <*> field
+
+instance ToJSON Todo where
+  toJSON c = object [ "id"        .= Db.todoId c
+                    , "savedOn"   .= Db.todoSavedOn c
+                    , "completed" .= Db.todoCompleted c
+                    , "text"      .= Db.todoText c]
+
 
 tableExists :: S.Connection -> String -> IO Bool
 tableExists conn tblName = do
