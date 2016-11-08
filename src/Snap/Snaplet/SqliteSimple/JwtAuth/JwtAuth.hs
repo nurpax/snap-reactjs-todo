@@ -28,6 +28,7 @@ module Snap.Snaplet.SqliteSimple.JwtAuth.JwtAuth (
 ------------------------------------------------------------------------------
 import           Control.Lens hiding ((.=), (??))
 import           Control.Monad.Except
+import           Control.Monad.State (gets)
 import           Control.Error hiding (err)
 import qualified Crypto.BCrypt as BC
 import           Data.Aeson
@@ -35,7 +36,6 @@ import           Data.Aeson.Types (parseEither)
 import qualified Data.Attoparsec.ByteString.Char8 as AP
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as BS8
-import qualified Data.Configurator as C
 import           Data.Maybe
 import           Data.Map as M
 import           Data.HashMap.Strict as HM
@@ -55,12 +55,14 @@ bcryptPolicy = BC.fastBcryptHashingPolicy
 -------------------------------------------------------------------------
 -- | Initializer for the sqlite-simple JwtAuth snaplet.
 sqliteJwtInit
-  :: Snaplet Sqlite -- ^ The sqlite-simple snaplet
+  :: String         -- ^ JWT secret signing key filename
+  -> Snaplet Sqlite -- ^ The sqlite-simple snaplet
   -> SnapletInit b SqliteJwt
-sqliteJwtInit db = makeSnaplet "sqlite-simple-jwt" description Nothing $ do
+sqliteJwtInit jwtSigningKeyFname db = makeSnaplet "sqlite-simple-jwt" description Nothing $ do
+    k <- liftIO $ (JWT.binarySecret <$> getKey jwtSigningKeyFname)
     let conn = sqliteConn $ db ^# snapletValue
     liftIO $ Db.createTableIfMissing conn
-    return $ SqliteJwt conn
+    return $ SqliteJwt k conn
   where
     description = "sqlite-simple jwt auth"
 
@@ -114,23 +116,22 @@ parseBearerJwt s = AP.parseOnly (AP.string "Bearer " *> payload) s
 -- TODO use a config parameter for site_secret
 jwtFromUser :: User -> Handler b SqliteJwt JWT.JSON
 jwtFromUser (User uid loginName) = do
+  key <- gets siteSecret
   let cs = JWT.def {
             JWT.unregisteredClaims = M.fromList [("id", Number (fromIntegral uid)), ("login", String loginName)]
           }
-      key = JWT.secret "site_secret"
   return $ JWT.encodeSigned JWT.HS256 key cs
 
 -- Authorize against JWT and run the user action if JWT verification succeeds.
 requireAuth :: (User -> Handler b SqliteJwt a) -> Handler b SqliteJwt a
 requireAuth action = do
-  -- TODO add configuration options + document how to generate it
-  let siteSecret = JWT.secret "site_secret"
+  key <- gets siteSecret
   req <- getRequest
   res <- runExceptT $ do
     authHdr     <- getHeader "Authorization" (rqHeaders req) ?? "Missing Authorization header"
     encPayload  <- hoistEither . parseBearerJwt $ authHdr
     jwt         <- JWT.decode encPayload     ?? "Malformed JWT"
-    verifJwt    <- JWT.verify siteSecret jwt ?? "JWT verification failed"
+    verifJwt    <- JWT.verify key jwt        ?? "JWT verification failed"
     let unregClaims = JWT.unregisteredClaims (JWT.claims verifJwt)
     -- TODO verify expiration too
     user        <- hoistEither . parseEither parseJSON $ (toObject unregClaims)

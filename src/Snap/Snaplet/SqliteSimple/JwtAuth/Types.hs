@@ -9,9 +9,11 @@ import           Data.ByteString
 import qualified Data.Text as T
 import           Database.SQLite.Simple
 import           Snap
+import           Web.JWT as JWT (Secret)
 
 data SqliteJwt = SqliteJwt {
-    sqliteJwtConn :: MVar Connection
+    siteSecret    :: JWT.Secret
+  , sqliteJwtConn :: MVar Connection
   }
 
 data User = User {

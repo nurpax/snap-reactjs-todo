@@ -86,14 +86,14 @@ createTableIfMissing connMVar =
 executeSingle :: (ToRow q) => S.Query -> q -> H b ()
 executeSingle q ps = do
   conn <- gets sqliteJwtConn
-  liftIO $ withMVar conn $ \conn ->
-    S.execute conn q ps
+  liftIO $ withMVar conn $ \c ->
+    S.execute c q ps
 
 querySingle :: (ToRow q, FromRow a) => S.Query -> q -> H b (Maybe a)
 querySingle q ps = do
   conn <- gets sqliteJwtConn
-  liftIO $ withMVar conn $ \conn ->
-    return . listToMaybe =<< S.query conn q ps
+  liftIO $ withMVar conn $ \c ->
+    return . listToMaybe =<< S.query c q ps
 
 qconcat :: [T.Text] -> S.Query
 qconcat = S.Query . T.concat
