@@ -28,7 +28,7 @@ module Snap.Snaplet.SqliteSimple.JwtAuth.JwtAuth (
 ------------------------------------------------------------------------------
 import           Control.Lens hiding ((.=), (??))
 import           Control.Monad.Except
-import           Control.Error
+import           Control.Error hiding (err)
 import qualified Crypto.BCrypt as BC
 import           Data.Aeson
 import           Data.Aeson.Types (parseEither)
@@ -150,10 +150,10 @@ handleLoginError err =
     failedPassOrUserError = "Unknown user or wrong password"
 
     failLogin :: T.Text -> H b ()
-    failLogin err = do
+    failLogin msg = do
       jsonResponse
       modifyResponse $ setResponseStatus 401 "bad login"
-      writeJSON $ object [ "error" .= err]
+      writeJSON $ object [ "error" .= msg]
 
 loginOK :: User -> Handler b SqliteJwt ()
 loginOK user = do
@@ -163,15 +163,13 @@ loginOK user = do
 registerUser :: Handler b SqliteJwt ()
 registerUser = method POST newUser
   where
-    newUser = runHttpErrorExceptT $ do
-      params     <- lift reqJSON
-      userOrErr  <- lift $ createUser (lpLogin params) (lpPass params)
-      return (either handleLoginError loginOK userOrErr)
+    newUser = do
+      params    <- reqJSON
+      userOrErr <- createUser (lpLogin params) (lpPass params)
+      either handleLoginError loginOK userOrErr
 
 loginUser :: Handler b SqliteJwt ()
-loginUser = method POST go
-  where
-    go = runHttpErrorExceptT $ do
-      params     <- lift reqJSON
-      userOrErr  <- lift $ login (lpLogin params) (lpPass params)
-      return (either handleLoginError loginOK userOrErr)
+loginUser = method POST $ do
+  params    <- reqJSON
+  userOrErr <- login (lpLogin params) (lpPass params)
+  either handleLoginError loginOK userOrErr

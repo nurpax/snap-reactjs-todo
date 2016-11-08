@@ -2,9 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Util (
-    logFail
-  , reqJSON
-  , logRunEitherT
+    reqJSON
   , runHttpErrorExceptT
   , hoistHttpError
   , writeJSON
@@ -12,7 +10,6 @@ module Util (
   ) where
 
 import           Control.Monad.Except
-import           Data.Int (Int64)
 import qualified Data.Aeson as A
 import qualified Data.ByteString as B
 import qualified Data.Text as T
@@ -24,23 +21,9 @@ import qualified Snap.Snaplet.SqliteSimple.JwtAuth as J
 import           Snap.Snaplet.SqliteSimple.JwtAuth (jsonResponse, reqJSON)
 import           Application
 
-class ConvertParam c where
-  parseParam :: B.ByteString -> Either String c
-
 type H = Handler App App
 
 data HttpError = HttpError Int String
-
--- | Log Either Left values or run the Handler action.  To be used in
--- situations where to user shouldn't see an error (either due to it
--- being irrelevant or due to security) but we want to leave a trace
--- of the error case anyway.
-logFail :: Either String (H ()) -> H ()
-logFail = either (logError . T.encodeUtf8 . T.pack) id
-
-
-logRunEitherT :: ExceptT String H (H ()) -> H ()
-logRunEitherT e = runExceptT e >>= logFail
 
 -------------------------------------------------------------------------------
 -- | Set MIME to 'application/json' and write given object into
@@ -67,9 +50,6 @@ runHttpErrorExceptT e = runExceptT e >>= either err id
 
 badReq :: String -> HttpError
 badReq msg = HttpError 400 msg
-
-forbiddenReq :: String -> HttpError
-forbiddenReq msg = HttpError 403 msg
 
 -- | Upgrade an 'Either' to an 'ExceptT'
 hoistEither :: Monad m => Either e a -> ExceptT e m a

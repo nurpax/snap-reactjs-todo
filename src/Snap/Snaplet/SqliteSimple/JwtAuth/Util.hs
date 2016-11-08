@@ -2,20 +2,11 @@
 
 module Snap.Snaplet.SqliteSimple.JwtAuth.Util where
 
-import           Control.Monad
-import           Control.Monad.Except
-import           Control.Monad.State
-import           Control.Error
 import           Data.Aeson
 import           Data.ByteString
 import qualified Data.ByteString.Char8 as BS8
 import           Data.Int (Int64)
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import           Snap
---import           Snap.Snaplet.SqliteSimple
-
-import           Snap.Snaplet.SqliteSimple.JwtAuth.Types
 
 -- | Discard anything after this and return given status code to HTTP
 -- client immediately.
@@ -25,14 +16,6 @@ finishEarly code str = do
   modifyResponse $ addHeader "Content-Type" "text/plain"
   writeBS str
   getResponse >>= finishWith
-
-runHttpErrorExceptT :: ExceptT HttpError (Handler b SqliteJwt) (Handler b SqliteJwt ()) -> Handler b SqliteJwt ()
-runHttpErrorExceptT e = runExceptT e >>= either err id
-  where
-    err (HttpError errCode msg) = do
-      let m = T.encodeUtf8 . T.pack $ msg
-      logError m
-      finishEarly errCode m
 
 jsonResponse :: MonadSnap m => m ()
 jsonResponse = modifyResponse $ setHeader "Content-Type" "application/json"
