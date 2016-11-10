@@ -40,6 +40,16 @@ instance FromJSON PostTodoParams where
   parseJSON (Object v) = PostTodoParams <$> optional (v.: "id") <*> optional (v .: "savedOn") <*> v .: "completed" <*> v .: "text"
   parseJSON _          = mzero
 
+replyJson :: ToJSON a => (J.User -> Handler App J.SqliteJwt a) -> H ()
+replyJson action = do
+  res <- with jwt $ J.requireAuth action
+  writeJSON res
+
+handleRestUserInfo :: H ()
+handleRestUserInfo = method GET (replyJson userInfo)
+  where
+    userInfo (J.User uid login) = return $ object ["id" .= uid, "login" .= login]
+
 handleRestTodos :: H ()
 handleRestTodos = (method GET listTodos) <|> (method POST saveTodo)
   where
@@ -63,16 +73,12 @@ handleRestTodos = (method GET listTodos) <|> (method POST saveTodo)
               let newTodo = Db.Todo tid (ptSavedOn ps) (ptCompleted ps) (ptText ps)
               withTop db $ Db.saveTodo (Db.UserId uid) newTodo
 
-    replyJson :: ToJSON a => (J.User -> Handler App J.SqliteJwt a) -> H ()
-    replyJson action = do
-      res <- with jwt $ J.requireAuth action
-      writeJSON res
-
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
 routes = [
            ("/api/login/new",  with jwt $ J.registerUser)
          , ("/api/login",      with jwt $ J.loginUser)
+         , ("/api/user",       handleRestUserInfo)
          , ("/api/todo",       handleRestTodos)
          , ("/static",         serveDirectory "static")
          , ("/",               serveFile "static/index.html")
