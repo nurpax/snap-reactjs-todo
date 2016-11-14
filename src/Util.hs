@@ -7,6 +7,7 @@ module Util (
   , hoistHttpError
   , writeJSON
   , jsonResponse
+  , finishEarly
   ) where
 
 import           Control.Monad.Except

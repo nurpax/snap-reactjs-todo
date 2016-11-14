@@ -73,6 +73,12 @@ handleRestTodos = (method GET listTodos) <|> (method POST saveTodo)
               let newTodo = Db.Todo tid (ptSavedOn ps) (ptCompleted ps) (ptText ps)
               withTop db $ Db.saveTodo (Db.UserId uid) newTodo
 
+handleUnknownAPI :: H ()
+handleUnknownAPI =
+  method GET err <|> method POST err <|> method PUT err
+  where
+    err = finishEarly 404 "Unknown API endpoint"
+
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
 routes = [
@@ -80,6 +86,7 @@ routes = [
          , ("/api/login",      with jwt $ J.loginUser)
          , ("/api/user",       handleRestUserInfo)
          , ("/api/todo",       handleRestTodos)
+         , ("/api",            handleUnknownAPI)
          , ("/static",         serveDirectory "static")
          , ("/",               serveFile "static/index.html")
          ]
