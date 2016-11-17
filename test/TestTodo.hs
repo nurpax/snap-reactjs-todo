@@ -5,9 +5,8 @@ module TestTodo where
 import           Control.Lens hiding ((.=))
 import           Control.Monad (mzero)
 import           Data.Aeson (ToJSON(..), FromJSON(..), Value(..), object, (.=), (.:))
-import           Data.Aeson.Lens
 import           Data.List (find)
-import           Data.Maybe (catMaybes, fromJust, isJust)
+import           Data.Maybe (catMaybes, isJust)
 import qualified Data.Text as T
 import           Data.Time (UTCTime)
 import           Network.Wreq
@@ -53,6 +52,11 @@ addTodo opts todo = do
   r <- asJSON =<< postWith opts (TU.mkUrl "/api/todo") (toJSON todo)
   return (r ^. responseBody)
 
+saveTodo :: Options -> Todo -> IO Todo
+saveTodo opts todo = do
+  r <- asJSON =<< postWith opts (TU.mkUrl "/api/todo") (toJSON todo)
+  return (r ^. responseBody)
+
 testAddTodo :: Options -> Assertion
 testAddTodo opts = do
   r <- addTodo opts todo1
@@ -65,26 +69,21 @@ testAddTodo opts = do
 
 testUpdateTodo :: Options -> Assertion
 testUpdateTodo opts = do
-  let timestamp = "2016-11-11T00:00:00+00" :: T.Text
+  let timestamp = "2016-11-11 00:00:00"
   let todo1Text = "todo 1 - updated" :: T.Text
   let todo1Id   = 1 :: Integer
-  let params = object [ "id"        .= todo1Id
-                      , "completed" .= True
-                      , "savedOn"   .= timestamp
-                      , "text"      .= todo1Text
-                      ]
-  r <- postWith opts (TU.mkUrl "/api/todo") $ params
-  Just todo1Id   @=? r ^? responseBody . key "id" . _Integer
-  Just todo1Text @=? r ^? responseBody . key "text" . _String
-  Just True      @=? r ^? responseBody . key "completed" . _Bool
-  assertBool "savedOn set" (isJust $ r ^? responseBody . key "savedOn" . _String)
+  let todo1 = Todo (Just todo1Id) (read timestamp) todo1Text True
+  todo' <- saveTodo opts todo1
+  Just todo1Id @=? todoId todo'
+  todo1Text    @=? todoText todo'
+  True         @=? todoCompleted todo'
 
 findTodo :: Todo -> [Todo] -> Maybe Todo
 findTodo t =
   find (\c -> todoId c == todoId t)
 
-todoIdElem :: Todo -> [Todo] -> Bool
-todoIdElem t = isJust . findTodo t
+todoIdExists :: Todo -> [Todo] -> Bool
+todoIdExists t = isJust . findTodo t
 
 testUserAccess :: Options -> Assertion
 testUserAccess optsUser1 = do
@@ -95,17 +94,25 @@ testUserAccess optsUser1 = do
   todos <- listTodos optsUser1
   assertBool "user1 todo list not empty" (not . null $ todos)
   let user1Todo1 = todos !! 0
-  assertBool "todo found" (user1Todo1 `todoIdElem` todos)
+  assertBool "todo found" (user1Todo1 `todoIdExists` todos)
   let newTodoParams = Todo Nothing (read "2016-11-11 01:01:01") "new todo" False
   newTodo <- addTodo optsUser1 newTodoParams
   todos1User1 <- listTodos optsUser1
   todos1User2 <- listTodos optsUser2
-  assertBool "todo found" (newTodo `todoIdElem` todos1User1)
-  assertBool "todo not found" (not (newTodo `todoIdElem` todos1User2))
+  assertBool "todo found" (newTodo `todoIdExists` todos1User1)
+  assertBool "todo not found" (not (newTodo `todoIdExists` todos1User2))
   newTodo2 <- addTodo optsUser2 newTodoParams
   todos2User1 <- listTodos optsUser1
   todos2User2 <- listTodos optsUser2
-  assertBool "todo found" (newTodo2 `todoIdElem` todos2User2)
-  assertBool "todo not found" (not (newTodo2 `todoIdElem` todos2User1))
-  -- TODO add a test that will try to update a todo owned by user1 using user2
-  return ()
+  assertBool "todo found" (newTodo2 `todoIdExists` todos2User2)
+  assertBool "todo not found" (not (newTodo2 `todoIdExists` todos2User1))
+
+testUserAccessInvalidReq :: Options -> Assertion
+testUserAccessInvalidReq optsUser1 = do
+  optsUser2 <- TU.loginUser TU.login2 TU.passwd2
+  let newTodoParams = Todo Nothing (read "2016-11-11 01:01:01") "new todo 2" False
+  newTodo <- addTodo optsUser1 newTodoParams
+  -- The server shouldn't allow us to save user1's todo with user2's account
+  TU.expectHttpError 403 (saveTodo optsUser2 newTodo)
+  t' <- saveTodo optsUser1 newTodo
+  todoText newTodoParams @=? todoText t'

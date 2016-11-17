@@ -11,6 +11,7 @@ module Db (
 
 import           Control.Monad
 import           Data.Aeson (ToJSON, toJSON, (.=), object)
+import qualified Data.ByteString as BS
 import qualified Data.Text as T
 import           Data.Time (UTCTime)
 import qualified Database.SQLite.Simple as S
@@ -84,7 +85,7 @@ newTodo user@(UserId uid) c = do
     queryTodo conn user (fromIntegral tid)
 
 -- | Save a new todo for a user
-saveTodo :: UserId -> Todo -> Handler App Sqlite Todo
+saveTodo :: UserId -> Todo -> Handler App Sqlite (Either BS.ByteString Todo)
 saveTodo user@(UserId uid) todo = do
   withSqlite $ \conn -> do
     S.executeNamed conn "UPDATE todos SET saved_on=:so, completed=:c, todo=:text WHERE user_id = :uid AND id = :id"
@@ -94,4 +95,10 @@ saveTodo user@(UserId uid) todo = do
       , ":uid"  S.:= uid
       , ":id"   S.:= todoId todo
       ]
-    queryTodo conn user (todoId todo)
+    numChangedRows <- S.changes conn
+    -- If the todo exists and is owned by this user, a single row should've
+    -- changed by the UPDATE statement
+    if numChangedRows == 1 then
+      Right <$> queryTodo conn user (todoId todo)
+    else
+      return . Left $ "Unknown todo or not owned by user"

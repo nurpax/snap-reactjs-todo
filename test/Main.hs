@@ -12,11 +12,12 @@ main =
   defaultMain
   [ testGroup "require auth fail" requireAuthFail
   , buildTest $ createUserTests [ ("logged in after create user?", testLoggedInOK) ]
-  , buildTest $ loginUserTests  [ ("logged in?",     testLoggedInOK)
-                                , ("no todos yet",   testListTodosEmpty)
-                                , ("add one todo",   testAddTodo)
-                                , ("edit todo",      testUpdateTodo)
-                                , ("test two users", testUserAccess)
+  , buildTest $ loginUserTests  [ ("logged in?",       testLoggedInOK)
+                                , ("no todos yet",     testListTodosEmpty)
+                                , ("add one todo",     testAddTodo)
+                                , ("edit todo",        testUpdateTodo)
+                                , ("test two users",   testUserAccess)
+                                , ("unallowed access", testUserAccessInvalidReq)
                                 ]
   , testCase "require 404" $ testUnknownAPIEndpoint "/api/foo"
 --                                ]

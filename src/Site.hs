@@ -40,15 +40,15 @@ instance FromJSON PostTodoParams where
   parseJSON (Object v) = PostTodoParams <$> optional (v.: "id") <*> optional (v .: "savedOn") <*> v .: "completed" <*> v .: "text"
   parseJSON _          = mzero
 
-replyJson :: ToJSON a => (J.User -> Handler App J.SqliteJwt a) -> H ()
+replyJson :: ToJSON a => (J.User -> Handler App J.SqliteJwt (Either ByteString a)) -> H ()
 replyJson action = do
   res <- with jwt $ J.requireAuth action
-  writeJSON res
+  either (finishEarly 403) writeJSON res
 
 handleRestUserInfo :: H ()
 handleRestUserInfo = method GET (replyJson userInfo)
   where
-    userInfo (J.User uid login) = return $ object ["id" .= uid, "login" .= login]
+    userInfo (J.User uid login) = return . Right $ object ["id" .= uid, "login" .= login]
 
 handleRestTodos :: H ()
 handleRestTodos = (method GET listTodos) <|> (method POST saveTodo)
@@ -57,7 +57,7 @@ handleRestTodos = (method GET listTodos) <|> (method POST saveTodo)
     listTodos = replyJson queryTodos
       where
         queryTodos (J.User uid _) = do
-          withTop db $ Db.listTodos (Db.UserId uid)
+          withTop db $ Right <$> Db.listTodos (Db.UserId uid)
 
     saveTodo = do
       ps <- reqJSON
@@ -68,7 +68,7 @@ handleRestTodos = (method GET listTodos) <|> (method POST saveTodo)
           -- an existing one.
           case ptId ps of
             Nothing -> do
-              withTop db $ Db.newTodo (Db.UserId uid) (ptText ps)
+              withTop db $ Right <$> Db.newTodo (Db.UserId uid) (ptText ps)
             Just tid -> do
               let newTodo = Db.Todo tid (ptSavedOn ps) (ptCompleted ps) (ptText ps)
               withTop db $ Db.saveTodo (Db.UserId uid) newTodo

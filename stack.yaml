@@ -45,6 +45,7 @@ extra-deps:
    - map-syntax-0.2.0.1
    - snap-1.0.0.1
    - bcrypt-0.0.10
+   - sqlite-simple-0.4.10.0
 
 # Override default flag values for local packages and extra-deps
 flags: {}

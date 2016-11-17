@@ -7,7 +7,6 @@ import           Control.Lens hiding ((.=))
 import           Data.Aeson (object, (.=))
 import           Data.Aeson.Lens
 import qualified Data.ByteString as BS
-import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import           Network.Wreq
@@ -75,7 +74,7 @@ loginUserTests tests = do
     . testGroup "tests with logged in user"
     . map (\(name, test) -> testCase name (test opts)) $ tests
 
-expectHttpError :: Int -> IO (Response LBS.ByteString) -> Assertion
+expectHttpError :: Int -> IO a -> Assertion
 expectHttpError errCode action =
   E.try action >>= check
   where
