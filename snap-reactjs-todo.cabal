@@ -17,14 +17,9 @@ flag development
   default: False
 
 executable snap-reactjs-todo
-  hs-source-dirs:      src src/Snap/Snaplet
+  hs-source-dirs:      src
   main-is:             Main.hs
   other-modules:       Application Db Site Util
-                       Snap.Snaplet.SqliteSimple.JwtAuth
-                       Snap.Snaplet.SqliteSimple.JwtAuth.JwtAuth
-                       Snap.Snaplet.SqliteSimple.JwtAuth.Db
-                       Snap.Snaplet.SqliteSimple.JwtAuth.Util
-                       Snap.Snaplet.SqliteSimple.JwtAuth.Types
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
     aeson,
@@ -43,6 +38,7 @@ executable snap-reactjs-todo
     snap-server           >= 1.0,
     snap-loader-static,
     snaplet-sqlite-simple >= 1.0,
+    snaplet-sqlite-simple-jwt-auth,
     sqlite-simple         >= 0.4.10.0,
     text                  >= 1.2,
     time                  >= 1.5,
