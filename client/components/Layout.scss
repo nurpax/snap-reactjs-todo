@@ -2,3 +2,15 @@
 :global(li) {
     margin-bottom: 0.1em;
 }
+
+:global(.container) {
+  width: 100%;
+}
+
+.navbar {
+  background-color:#fafafa;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+}

@@ -19,8 +19,9 @@ export default class Navbar extends Component {
   loggedInUserMenu () {
     return (
       <Nli className={s.dropdown}>
-        <Link to='/profile' className={s.dropbtn}>Profile</Link>
+        <span className={s.dropbtn}>Profile</span>
         <div className={s.dropdownContent}>
+          <Link to='/profile' className={s.dropbtn}>Settings</Link>
           <LogoutLink to='/'>Logout</LogoutLink>
         </div>
       </Nli>
@@ -30,7 +31,7 @@ export default class Navbar extends Component {
   loggedOutUserMenu () {
     return (
       <Nli className={s.dropdown}>
-        <Link to='/login' className={s.dropbtn}>Profile</Link>
+        <span className={s.dropbtn}>Sign-in</span>
         <div className={s.dropdownContent}>
           <Link to='/login'>Login</Link>
           <Link to='/signup'>Sign Up</Link>
