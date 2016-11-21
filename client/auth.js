@@ -4,6 +4,7 @@
 
 import fetch from 'isomorphic-fetch'
 import jwt_decode from 'jwt-decode'
+import { push } from 'react-router-redux'
 
 // Redux actions and reducers for authetication with JWT
 
@@ -56,18 +57,39 @@ function doLoginRequest (newUser, params) {
   }
 }
 
+function checkHttpStatus(response) {
+  if (response.status >= 200 && response.status < 300) {
+    return response
+  } else {
+    var error = new Error(response.statusText)
+    error.response = response
+    throw error
+  }
+}
+
 // Authorized fetch that should be used for any API end point that requires
 // the user to be logged in.
 //
 // The body parameter is automatically converted into JSON if it's passed in
 // as an object.  The server response is also automatically JSON parsed.
-export function fetchWithAuth (getState, url, params) {
+export function fetchWithAuth (dispatch, getState, url, params, cb) {
   let p = {...params}
-  p.headers = {'Authorization': 'Bearer ' + getState().user.token}
+  p.headers = {'Authorization': `Bearer ${getState().user.token}`}
   if (params.body instanceof Object) {
     p.body = JSON.stringify(params.body)
   }
-  return fetch(url, p).then(r => r.json())
+  return fetch(url, p)
+    .then(checkHttpStatus)
+    .then(r => r.json())
+    .then(json => cb(json))
+    .catch(error => {
+      // TODO should set a notifier for this
+      // maybe move notification code into the auth module?
+      if (error.response.status == 401) {
+        dispatch(logout())
+        dispatch(push('/login'))
+      }
+    })
 }
 
 // params.login  - login name

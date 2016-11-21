@@ -99,7 +99,7 @@ app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     d <- nestSnaplet "db" db sqliteInit
 
     -- Initialize auth that's backed by an sqlite database
-    j <- nestSnaplet "jwt" jwt (J.sqliteJwtInit "jwt_secret.txt" d)
+    j <- nestSnaplet "jwt" jwt (J.sqliteJwtInit J.defaults d)
 
     -- Grab the DB connection pool from the sqlite snaplet and call
     -- into the Model to create all the DB tables if necessary.

@@ -21,15 +21,18 @@ function receiveTodo (json) {
 
 export function fetchTodos () {
   return function (dispatch, getState) {
-    return fetchWithAuth(getState, '/api/todo', {}).then(json => dispatch(receiveTodos(json)))
+    return fetchWithAuth(dispatch, getState, '/api/todo', {}, function (json) {
+      dispatch(receiveTodos(json))
+    })
   }
 }
 
 export function saveTodo (todo) {
   return function (dispatch, getState) {
-    return fetchWithAuth(getState, '/api/todo', { method: 'POST', body: todo })
-      .then(json => dispatch(receiveTodo(json))
-      )
+    return fetchWithAuth(dispatch, getState, '/api/todo', { method: 'POST', body: todo },
+      function (json) {
+        dispatch(receiveTodo(json))
+      })
   }
 }
 
