@@ -46,12 +46,28 @@ class SignUpContainer extends Component {
   render () {
     return (
       <Layout isLoginScreen user={this.props.isAuthenticated}>
-        <h2>Create a New User</h2>
-        <input type='text' ref='login' placeholder='Account name..' />
-        <br />
-        <input type='password' ref='pass' placeholder='Password..' />
-        <br />
-        <button className='button-primary' onClick={this.onClick}>Sign Up</button>
+        <h2>Sign up</h2>
+        <div className='row'>
+          <div className='six columns'>
+            <label htmlFor='loginNameInput'>Username or e-mail address</label>
+            <input className='u-full-width' type='text' placeholder='test@example.com'
+              id='loginNameInput' ref='login' />
+          </div>
+        </div>
+
+        <div className='row'>
+          <div className='six columns'>
+            <label htmlFor='loginPassInput'>Password</label>
+            <input className='u-full-width' type='password' placeholder='Password..'
+              id='loginPassInput' ref='pass' />
+          </div>
+        </div>
+
+        <div className='row'>
+          <div className='six columns'>
+            <button className='button-primary u-full-width' onClick={this.onClick}>Sign in</button>
+          </div>
+        </div>
         <LoginError />
       </Layout>
     )

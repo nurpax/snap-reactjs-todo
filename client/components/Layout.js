@@ -29,7 +29,9 @@ export default class Layout extends Component {
           <div className='row'>
             <div className='one column' />
             <div className='ten columns'>
-              {this.props.children}
+              <div className={s.contentMargin}>
+                {this.props.children}
+              </div>
             </div>
             <div className='one column' />
           </div>
