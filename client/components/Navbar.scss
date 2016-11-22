@@ -8,6 +8,15 @@ ul.nav {
     background-color:#fafafa;
 }
 
+div.dropdownDivider {
+    height: 1px;
+    background-color: #e5e5e5;
+}
+
+div.text {
+
+}
+
 li.nav {
     float: left;
 }
@@ -22,11 +31,14 @@ li.nav a, .dropbtn {
     padding-right: 10px;
     text-decoration:none;
     min-width:80px;
+    user-select: none;
 }
 
-li.nav a:hover, .dropdown:hover .dropbtn {
+@media only screen and (min-device-width: 768px)
+{
+  li.nav a:hover, .dropdown:hover .dropbtn {
     background-color: #f4f4f4;
-    border-radius: 5px;
+  }
 }
 
 li.dropdown {
@@ -41,7 +53,7 @@ li.dropdown {
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 }
 
-div.dropdownContent a {
+div.dropdownContent a, div.text {
     color: #222;
     padding: 12px 16px;
     text-decoration: none;

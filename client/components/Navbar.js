@@ -21,7 +21,9 @@ export default class Navbar extends Component {
       <Nli className={s.dropdown}>
         <span className={s.dropbtn}>Profile</span>
         <div className={s.dropdownContent}>
-          <Link to='/profile' className={s.dropbtn}>Settings</Link>
+          <div className={s.text}>Logged in as {this.props.user.login}</div>
+          <div className={s.dropdownDivider}></div>
+          <Link to='/profile'>Settings</Link>
           <LogoutLink to='/'>Logout</LogoutLink>
         </div>
       </Nli>
