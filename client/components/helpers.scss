@@ -1,0 +1,30 @@
+
+.alert-base {
+  border: 1px solid;
+  border-radius: 4px;
+  padding: 10px;
+}
+
+.info {
+  composes: alert-base;
+
+  color: #31708f;
+  background-color: #d9edf7;
+  border-color: #bce8f1;
+}
+
+.warning {
+  composes: alert-base;
+
+  color: #8a6d3b;
+  background-color: #fcf8e3;
+  border-color: #faebcc;
+}
+
+.error {
+  composes: alert-base;
+
+  color: #a94442;
+  background-color: #f2dede;
+  border-color: #ebccd1;
+}

@@ -1,6 +1,7 @@
 
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
+import { Alert } from '../components/helpers'
 
 export class LoginErrorView extends Component {
   static propTypes = {
@@ -14,11 +15,15 @@ export class LoginErrorView extends Component {
   }
 
   render () {
-    let style = {
-      color: 'red'
-    }
+    let msg = this.props.msg
+      ? <Alert type='error'>{this.props.msg}</Alert>
+      : null
     return (
-      <div style={style}>{this.props.msg}</div>
+      <div className='row'>
+        <div className='six columns'>
+          {msg}
+        </div>
+      </div>
     )
   }
 }
