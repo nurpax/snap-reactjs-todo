@@ -1,4 +1,5 @@
 
+var webpack = require("webpack");
 var path = require('path');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var combineLoaders = require('webpack-combine-loaders');
@@ -15,7 +16,10 @@ var config = {
   resolve: {
     extensions: ['', '.js', '.jsx']
   },
-  plugins: [new ExtractTextPlugin('styles.css')],
+  plugins: [
+    new webpack.DefinePlugin({'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')}),
+    new ExtractTextPlugin('styles.css')
+  ],
   module : {
     loaders : [
       {
