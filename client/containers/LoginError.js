@@ -9,7 +9,7 @@ export class LoginErrorView extends Component {
 
   static mapStateToProps (state) {
     return {
-      msg: state.notification
+      msg: state.auth ? state.auth.status : null
     }
   }
 

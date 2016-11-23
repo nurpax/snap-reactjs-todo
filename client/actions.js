@@ -42,14 +42,3 @@ export function setFilter (filter) {
     data: filter
   }
 }
-
-export function setNotification (msg) {
-  return dispatch => {
-    dispatch({ type: c.NOTIFY_SET, data: msg })
-    setTimeout(() => {
-      dispatch({
-        type: c.NOTIFY_DISMISS
-      })
-    }, 5000)
-  }
-}

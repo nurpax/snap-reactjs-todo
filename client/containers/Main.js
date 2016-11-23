@@ -3,6 +3,8 @@ import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 import Layout from '../components/Layout'
 
+import { getUser } from '../auth'
+
 var Link = require('react-router').Link
 
 class Main extends Component {
@@ -28,7 +30,7 @@ class Main extends Component {
 
 function mapStateToProps (state) {
   return {
-    user: state.user
+    user: getUser(state)
   }
 }
 

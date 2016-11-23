@@ -37,21 +37,11 @@ const filterReducer = (state = 'active', { type, data }) => {
   return state
 }
 
-const notifyReducer = (state = null, { type, data }) => {
-  if (type === c.NOTIFY_SET) {
-    return data
-  } else if (type === c.NOTIFY_DISMISS) {
-    return null
-  }
-  return state
-}
-
 const appReducer = combineReducers({
-  user: auth.userReducer,
+  auth: auth.authReducer,
   filter: filterReducer,
   routing: routerReducer,
   todos: receiveTodos,
-  notification: notifyReducer
 })
 
 const rootReducer = (state, action) => {

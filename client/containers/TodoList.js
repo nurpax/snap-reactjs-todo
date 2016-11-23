@@ -1,6 +1,7 @@
 
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
+import { getUser } from '../auth'
 import { fetchTodos, saveTodo } from '../actions'
 import { getSortedTodos } from '../selectors'
 
@@ -98,7 +99,7 @@ const mapDispatchToProps = (dispatch) => {
 
 function mapStateToProps (state) {
   return {
-    user: state.user,
+    user: getUser(state),
     todos: getSortedTodos(state)
   }
 }

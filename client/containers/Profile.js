@@ -1,6 +1,7 @@
 
 import React, { PropTypes, Component } from 'react'
 import { connect } from 'react-redux'
+import { getUser } from '../auth'
 
 import Layout from '../components/Layout'
 
@@ -21,7 +22,7 @@ class ProfileView extends Component {
 
 function mapStateToProps (state) {
   return {
-    user: state.user
+    user: getUser(state)
   }
 }
 

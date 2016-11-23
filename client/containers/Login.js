@@ -7,11 +7,10 @@ import Layout from '../components/Layout'
 import LoginForm from '../components/LoginForm'
 
 import LoginError from './LoginError.js'
-import { login } from '../auth'
-import { setNotification } from '../actions'
+import { login, getUser } from '../auth'
 
 function select (state, ownProps) {
-  const isAuthenticated = state.user || null
+  const isAuthenticated = getUser(state)
   const redirect = ownProps.location.query.redirect || '/'
   return {
     isAuthenticated,
@@ -46,8 +45,7 @@ class LoginContainer extends Component {
   handleSubmit = (p) => {
     this.props.login({
       login: p.login,
-      pass: p.pass,
-      notify: setNotification
+      pass: p.pass
     })
   };
 

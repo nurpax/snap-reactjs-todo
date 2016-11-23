@@ -6,11 +6,10 @@ import { connect } from 'react-redux'
 import Layout from '../components/Layout'
 import LoginForm from '../components/LoginForm'
 import LoginError from './LoginError.js'
-import { signUp } from '../auth'
-import { setNotification } from '../actions'
+import { signUp, getUser } from '../auth'
 
 function select (state) {
-  const isAuthenticated = state.user || null
+  const isAuthenticated = getUser(state)
   return {
     isAuthenticated
   }
@@ -36,8 +35,7 @@ class SignUpContainer extends Component {
   handleSubmit = (p) => {
     this.props.signUp({
       login: p.login,
-      pass: p.pass,
-      notify: setNotification
+      pass: p.pass
     })
   };
 

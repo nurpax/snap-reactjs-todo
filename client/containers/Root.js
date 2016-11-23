@@ -4,6 +4,7 @@ import { Router, Route, browserHistory } from 'react-router'
 import { syncHistoryWithStore, routerActions } from 'react-router-redux'
 import { UserAuthWrapper } from 'redux-auth-wrapper'
 
+import { getUser } from '../auth'
 import Main from './Main'
 import TodoList from './TodoList'
 import Login from './Login'
@@ -16,7 +17,7 @@ const store = configureStore()
 const history = syncHistoryWithStore(browserHistory, store)
 
 const UserIsAuthenticated = UserAuthWrapper({
-  authSelector: state => state.user,
+  authSelector: state => getUser(state),
   redirectAction: routerActions.replace,
   wrapperDisplayName: 'UserIsAuthenticated'
 })

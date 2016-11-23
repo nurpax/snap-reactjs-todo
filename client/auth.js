@@ -4,24 +4,34 @@
 
 import fetch from 'isomorphic-fetch'
 import jwt_decode from 'jwt-decode'
+import { combineReducers } from 'redux'
 import { push } from 'react-router-redux'
 
 // Redux actions and reducers for authetication with JWT
 
 export const USER_LOGGED_IN = 'USER_LOGGED_IN'
 export const USER_LOGGED_OUT = 'USER_LOGGED_OUT'
+export const LOGIN_STATUS_SET = 'LOGIN_STATUS_SET'
+export const LOGIN_STATUS_DISMISS = 'LOGIN_STATUS_DISMISS'
+
+export function setNotification (msg) {
+  return dispatch => {
+    dispatch({ type: LOGIN_STATUS_SET, data: msg })
+    setTimeout(() => {
+      dispatch({
+        type: LOGIN_STATUS_DISMISS
+      })
+    }, 5000)
+  }
+}
 
 // Wrapper to translate expected login errors
-function checkLogin (dispatch, response, doLogin, notify) {
+function checkLogin (dispatch, response, doLogin) {
   if (response.status === 200) {
     return response.json().then(doLogin)
   } else if (response.status === 401) {
     return response.json().then(function (err) {
-      if (notify && notify instanceof Function) {
-        dispatch(notify(err.error))
-      } else {
-        throw new Error('notify action must be a function')
-      }
+      dispatch(setNotification(err.error))
     })
   }
   // TODO throw unknown error here
@@ -74,7 +84,7 @@ function checkHttpStatus(response) {
 // as an object.  The server response is also automatically JSON parsed.
 export function fetchWithAuth (dispatch, getState, url, params, cb) {
   let p = {...params}
-  p.headers = {'Authorization': `Bearer ${getState().user.token}`}
+  p.headers = {'Authorization': `Bearer ${getState().auth.user.token}`}
   if (params.body instanceof Object) {
     p.body = JSON.stringify(params.body)
   }
@@ -83,10 +93,9 @@ export function fetchWithAuth (dispatch, getState, url, params, cb) {
     .then(r => r.json())
     .then(json => cb(json))
     .catch(error => {
-      // TODO should set a notifier for this
-      // maybe move notification code into the auth module?
       if (error.response.status == 401) {
         dispatch(logout())
+        dispatch(setNotification('Login expired'))
         dispatch(push('/login'))
       }
     })
@@ -113,7 +122,7 @@ export function logout () {
   }
 }
 
-export const userReducer = (state = JSON.parse(localStorage.getItem('token')) || null, { type, payload }) => {
+const userReducer = (state = JSON.parse(localStorage.getItem('token')) || null, { type, payload }) => {
   if (type === USER_LOGGED_IN) {
     return payload
   }
@@ -123,3 +132,19 @@ export const userReducer = (state = JSON.parse(localStorage.getItem('token')) ||
   return state
 }
 
+const notifyReducer = (state = null, { type, data }) => {
+  if (type === LOGIN_STATUS_SET) {
+    return data
+  } else if (type === LOGIN_STATUS_DISMISS) {
+    return null
+  }
+  return state
+}
+
+export const authReducer = combineReducers({
+  user: userReducer,
+  status: notifyReducer
+})
+
+// User selector from state
+export const getUser = (state) => state.auth ? state.auth.user : null
