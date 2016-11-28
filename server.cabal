@@ -1,4 +1,4 @@
-name:                snap-reactjs-todo
+name:                server
 version:             0.1.0.0
 synopsis:            Snap + ReactJS + webpack example
 description:         Please see README.md
@@ -16,7 +16,7 @@ flag development
   description: Whether to build the server in development (interpreted) mode
   default: False
 
-executable snap-reactjs-todo
+executable server
   hs-source-dirs:      src
   main-is:             Main.hs
   other-modules:       Application Db Site Util

@@ -13,7 +13,7 @@ This was not intended as a "boilerplate" project, so some features like hot-load
 3. `npm i`
 4. `stack setup`, `stack build`
 5. In shell A: `npm run dev` (start watching the JS client source, rebuilding on changes)
-6. In shell B: `stack exec snap-reactjs-todo` (start Haskell server)
+6. In shell B: `stack exec server` (start Haskell server)
 7. Navigate to http://localhost:8000
 
 You need to create a new user in order to actually get into the todo view.  The home page route doesn't require logged-in status.
