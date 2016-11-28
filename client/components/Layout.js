@@ -2,7 +2,9 @@
 import React, { Component, PropTypes } from 'react'
 import classNames from 'classNames'
 
+// Pull skeleton into the CSS build
 // eslint-disable-next-line no-unused-vars
+import globalStyles from './globalStyles.css'
 import s from './Layout.scss'
 
 import Navbar from './Navbar'

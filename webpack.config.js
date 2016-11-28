@@ -34,6 +34,14 @@ var config = {
       },
 
       {
+        test: /globalStyles\.css$/,
+        loader: ExtractTextPlugin.extract(
+          'style-loader',
+          'css-loader?sourceMap'
+        )
+      },
+
+      {
         test: /\.scss$/,
         loader: ExtractTextPlugin.extract(
           'style-loader',
