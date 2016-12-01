@@ -2,7 +2,6 @@
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 import Layout from '../components/Layout'
-import { Alert } from '../components/helpers'
 
 import { getUser } from '../auth'
 

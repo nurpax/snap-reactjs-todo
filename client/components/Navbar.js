@@ -1,7 +1,7 @@
 
 import React, { Component } from 'react'
 import { Link } from 'react-router'
-import classNames from 'classNames'
+import classNames from 'classnames'
 
 import LogoutLink from '../containers/LogoutLink'
 import s from './Navbar.scss'
@@ -22,7 +22,7 @@ export default class Navbar extends Component {
         <span className={s.dropbtn}>Profile</span>
         <div className={s.dropdownContent}>
           <div className={s.text}>Logged in as {this.props.user.login}</div>
-          <div className={s.dropdownDivider}></div>
+          <div className={s.dropdownDivider} />
           <Link to='/profile'>Settings</Link>
           <LogoutLink to='/'>Logout</LogoutLink>
         </div>
