@@ -1,4 +1,4 @@
-:local(.base) {
+.base {
     color: #777;
     width: 44px;
     font-size: 11px;
@@ -10,12 +10,12 @@
     text-transform: uppercase;
 }
 
-:local(a.inactive), :local(a.inactive:hover) {
-    @extend :local(.base);
+a.inactive, a.inactive:hover {
+    @extend .base;
     border: 1px solid #fff
 }
 
-:local(a.active), :local(a.active:hover) {
-    @extend :local(.base);
+a.active, a.active:hover {
+    @extend .base;
     border: 1px solid #bbb;
 }
