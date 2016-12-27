@@ -21,6 +21,15 @@ import           Database.SQLite.Simple (Connection, FromRow, ToRow, Query, Only
 import qualified Database.SQLite.Simple as S
 
 type UserId = Int
+data DbContext = DbContext {
+    connection :: Connection
+  , user       :: UserId
+  }
+
+-- Reader/IO monad that provides a connection handle and current user for DB
+-- entry points.
+type Db = ReaderT DbContext IO
+
 data User = User UserId T.Text
 
 data Todo = Todo
@@ -64,15 +73,6 @@ createTables conn = do
                 , "saved_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, "
                 , "completed INTEGER DEFAULT 0, "
                 , "todo TEXT)"])
-
-data DbContext = DbContext {
-    connection :: Connection
-  , user       :: UserId
-  }
-
--- Reader/IO monad that provides a connection handle and current user for DB
--- entry points.
-type Db = ReaderT DbContext IO
 
 runDb :: Connection -> User -> Db a -> IO a
 runDb c (User uid _) a = runReaderT a (DbContext c uid)
