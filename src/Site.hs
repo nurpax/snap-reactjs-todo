@@ -30,14 +30,13 @@ import           Util
 type H = Handler App App
 
 data PostTodoParams = PostTodoParams {
-    ptId        :: Maybe Int
-  , ptSavedOn   :: Maybe UTCTime
+    ptSavedOn   :: Maybe UTCTime
   , ptCompleted :: Bool
   , ptText      :: T.Text
   }
 
 instance FromJSON PostTodoParams where
-  parseJSON (Object v) = PostTodoParams <$> optional (v.: "id") <*> optional (v .: "savedOn") <*> v .: "completed" <*> v .: "text"
+  parseJSON (Object v) = PostTodoParams <$> optional (v .: "savedOn") <*> v .: "completed" <*> v .: "text"
   parseJSON _          = mzero
 
 replyJson :: ToJSON a => (J.User -> Handler App J.SqliteJwt (Either ByteString a)) -> H ()
@@ -55,31 +54,34 @@ handleRestListTodos =
   replyJson $ \(J.User uid _) ->
     withTop db $ Right <$> Db.listTodos (Db.UserId uid)
 
-handleRestTodos :: H ()
-handleRestTodos = do
+handleRestNewTodo :: H ()
+handleRestNewTodo = do
   ps <- reqJSON
-  replyJson (queryTodo ps)
+  replyJson (newTodo ps)
   where
-    queryTodo ps (J.User uid _) =
-      -- If the input todo id is Nothing, create a new todo.  Otherwise update
-      -- an existing one.
-      case ptId ps of
-        Nothing -> do
-          withTop db $ Right <$> Db.newTodo (Db.UserId uid) (ptText ps)
-        Just tid -> do
-          let newTodo = Db.Todo tid (ptSavedOn ps) (ptCompleted ps) (ptText ps)
-          withTop db $ Db.saveTodo (Db.UserId uid) newTodo
+    newTodo ps (J.User uid _) =
+      withTop db $ Right <$> Db.newTodo (Db.UserId uid) (ptText ps)
+
+handleRestUpdateTodo :: H ()
+handleRestUpdateTodo = do
+  ps     <- reqJSON
+  todoId <- reqParam "id"
+  replyJson (updateTodo ps todoId)
+  where
+    updateTodo ps tid (J.User uid _) = do
+      let newTodo = Db.Todo tid (ptSavedOn ps) (ptCompleted ps) (ptText ps)
+      withTop db $ Db.saveTodo (Db.UserId uid) newTodo
 
 handleUnknownAPI :: H ()
-handleUnknownAPI =
-  method GET err <|> method POST err <|> method PUT err
+handleUnknownAPI = method GET err <|> method POST err <|> method PUT err
   where
     err = finishEarly 404 "Unknown API endpoint"
 
 apiRoutes :: [(ByteString, Handler App App ())]
 apiRoutes = [ ("/api/user",       handleRestUserInfo)
-            , ("/api/todo",       method GET handleRestListTodos)
-            , ("/api/todo",       method POST handleRestTodos)
+            , ("/api/todo",       method GET  handleRestListTodos)
+            , ("/api/todo/:id",   method POST handleRestUpdateTodo)
+            , ("/api/todo",       method POST handleRestNewTodo)
              ]
 
 -- | The application's routes.

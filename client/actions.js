@@ -29,7 +29,8 @@ export function fetchTodos () {
 
 export function saveTodo (todo) {
   return function (dispatch, getState) {
-    return fetchWithAuth(dispatch, getState, '/api/todo', { method: 'POST', body: todo },
+    const url = todo.id ? `/api/todo/${todo.id}` : '/api/todo'
+    return fetchWithAuth(dispatch, getState, url, { method: 'POST', body: todo },
       function (json) {
         dispatch(receiveTodo(json))
       })

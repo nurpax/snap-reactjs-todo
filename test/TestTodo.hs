@@ -52,9 +52,13 @@ addTodo opts todo = do
   r <- asJSON =<< postWith opts (TU.mkUrl "/api/todo") (toJSON todo)
   return (r ^. responseBody)
 
+mkUpdateTodoUrl :: Todo -> String
+mkUpdateTodoUrl (Todo (Just i) _ _ _) = TU.mkUrl ("/api/todo/" ++ show i)
+mkUpdateTodoUrl (Todo Nothing _ _ _)  = error "must call with an id"
+
 saveTodo :: Options -> Todo -> IO Todo
 saveTodo opts todo = do
-  r <- asJSON =<< postWith opts (TU.mkUrl "/api/todo") (toJSON todo)
+  r <- asJSON =<< postWith opts (mkUpdateTodoUrl todo) (toJSON todo)
   return (r ^. responseBody)
 
 testAddTodo :: Options -> Assertion
