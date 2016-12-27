@@ -38,28 +38,34 @@ data PostTodoParams = PostTodoParams {
 
 instance FromJSON PostTodoParams
 
-replyJson :: ToJSON a => (J.User -> Handler App J.SqliteJwt (Either ByteString a)) -> H ()
+replyJson :: ToJSON a => (Db.User -> Handler App J.SqliteJwt (Either ByteString a)) -> H ()
 replyJson action = do
-  res <- with jwt $ J.requireAuth action
+  res <- with jwt $ J.requireAuth (\(J.User uid login) -> action (Db.User uid login))
   either (finishEarly 403) writeJSON res
+
+-- Run DB queries with a connection and a logged in user.
+runDbWithUser :: (HasSqlite (m App Sqlite), MonadSnaplet m)
+  => Db.User
+  -> Db.Db a
+  -> m App v a
+runDbWithUser user action = withTop db . withSqlite $ \conn -> Db.runDb conn user action
 
 handleRestUserInfo :: H ()
 handleRestUserInfo = method GET (replyJson userInfo)
   where
-    userInfo (J.User uid login) = return . Right $ object ["id" .= uid, "login" .= login]
+    userInfo (Db.User uid login) = return . Right $ object ["id" .= uid, "login" .= login]
 
 handleRestListTodos :: H ()
 handleRestListTodos =
-  replyJson $ \(J.User uid _) ->
-    withTop db $ Right <$> Db.listTodos (Db.UserId uid)
+  replyJson $ \user -> runDbWithUser user $ (Right <$> Db.listTodos)
 
 handleRestNewTodo :: H ()
 handleRestNewTodo = do
   ps <- reqJSON
   replyJson (newTodo ps)
   where
-    newTodo PostTodoParams{..} (J.User uid _) =
-      withTop db $ Right <$> Db.newTodo (Db.UserId uid) text
+    newTodo PostTodoParams{..} user =
+      runDbWithUser user $ Right <$> Db.newTodo text
 
 handleRestUpdateTodo :: H ()
 handleRestUpdateTodo = do
@@ -67,9 +73,9 @@ handleRestUpdateTodo = do
   todoId <- reqParam "id"
   replyJson (updateTodo ps todoId)
   where
-    updateTodo PostTodoParams{..} tid (J.User uid _) = do
+    updateTodo PostTodoParams{..} tid user = do
       let newTodo = Db.Todo tid savedOn completed text
-      withTop db $ Db.saveTodo (Db.UserId uid) newTodo
+      runDbWithUser user $ Db.saveTodo newTodo
 
 handleUnknownAPI :: H ()
 handleUnknownAPI = method GET err <|> method POST err <|> method PUT err
