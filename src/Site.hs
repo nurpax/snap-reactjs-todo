@@ -50,28 +50,25 @@ handleRestUserInfo = method GET (replyJson userInfo)
   where
     userInfo (J.User uid login) = return . Right $ object ["id" .= uid, "login" .= login]
 
-handleRestTodos :: H ()
-handleRestTodos = (method GET listTodos) <|> (method POST saveTodo)
-  where
-    listTodos :: H ()
-    listTodos = replyJson queryTodos
-      where
-        queryTodos (J.User uid _) = do
-          withTop db $ Right <$> Db.listTodos (Db.UserId uid)
+handleRestListTodos :: H ()
+handleRestListTodos =
+  replyJson $ \(J.User uid _) ->
+    withTop db $ Right <$> Db.listTodos (Db.UserId uid)
 
-    saveTodo = do
-      ps <- reqJSON
-      replyJson (queryTodo ps)
-      where
-        queryTodo ps (J.User uid _) =
-          -- If the input todo id is Nothing, create a new todo.  Otherwise update
-          -- an existing one.
-          case ptId ps of
-            Nothing -> do
-              withTop db $ Right <$> Db.newTodo (Db.UserId uid) (ptText ps)
-            Just tid -> do
-              let newTodo = Db.Todo tid (ptSavedOn ps) (ptCompleted ps) (ptText ps)
-              withTop db $ Db.saveTodo (Db.UserId uid) newTodo
+handleRestTodos :: H ()
+handleRestTodos = do
+  ps <- reqJSON
+  replyJson (queryTodo ps)
+  where
+    queryTodo ps (J.User uid _) =
+      -- If the input todo id is Nothing, create a new todo.  Otherwise update
+      -- an existing one.
+      case ptId ps of
+        Nothing -> do
+          withTop db $ Right <$> Db.newTodo (Db.UserId uid) (ptText ps)
+        Just tid -> do
+          let newTodo = Db.Todo tid (ptSavedOn ps) (ptCompleted ps) (ptText ps)
+          withTop db $ Db.saveTodo (Db.UserId uid) newTodo
 
 handleUnknownAPI :: H ()
 handleUnknownAPI =
@@ -79,14 +76,19 @@ handleUnknownAPI =
   where
     err = finishEarly 404 "Unknown API endpoint"
 
+apiRoutes :: [(ByteString, Handler App App ())]
+apiRoutes = [ ("/api/user",       handleRestUserInfo)
+            , ("/api/todo",       method GET handleRestListTodos)
+            , ("/api/todo",       method POST handleRestTodos)
+             ]
+
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
-routes = [
-           ("/api/login/new",  with jwt $ J.registerUser)
-         , ("/api/login",      with jwt $ J.loginUser)
-         , ("/api/user",       handleRestUserInfo)
-         , ("/api/todo",       handleRestTodos)
-         , ("/api",            handleUnknownAPI)
+routes = [ ("/api/login/new",  with jwt J.registerUser)
+         , ("/api/login",      with jwt J.loginUser)
+         ]
+         ++ apiRoutes ++
+         [ ("/api",            handleUnknownAPI)
          , ("/static",         serveDirectory "static")
          , ("/",               serveFile "static/index.html")
          ]
