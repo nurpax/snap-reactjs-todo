@@ -22,7 +22,7 @@ executable server
   other-modules:       Application Db Site Util
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-    aeson,
+    aeson                 >= 1.0.2.1,
     attoparsec,
     base                  >= 4      && < 5,
     bcrypt                >= 0.0.10,

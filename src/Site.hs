@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables, DeriveGeneric, RecordWildCards #-}
 
 -----------------------------------------------------------------------------
 -- | This module is where all the routes and handlers are defined for your
@@ -17,6 +17,7 @@ import           Data.Aeson hiding (json)
 import           Data.ByteString (ByteString)
 import qualified Data.Text as T
 import           Data.Time (UTCTime)
+import           GHC.Generics
 import           Snap.Core
 import           Snap.Snaplet
 import qualified Snap.Snaplet.SqliteSimple.JwtAuth as J
@@ -30,14 +31,12 @@ import           Util
 type H = Handler App App
 
 data PostTodoParams = PostTodoParams {
-    ptSavedOn   :: Maybe UTCTime
-  , ptCompleted :: Bool
-  , ptText      :: T.Text
-  }
+    savedOn   :: Maybe UTCTime
+  , completed :: Bool
+  , text      :: T.Text
+  } deriving (Generic)
 
-instance FromJSON PostTodoParams where
-  parseJSON (Object v) = PostTodoParams <$> optional (v .: "savedOn") <*> v .: "completed" <*> v .: "text"
-  parseJSON _          = mzero
+instance FromJSON PostTodoParams
 
 replyJson :: ToJSON a => (J.User -> Handler App J.SqliteJwt (Either ByteString a)) -> H ()
 replyJson action = do
@@ -59,8 +58,8 @@ handleRestNewTodo = do
   ps <- reqJSON
   replyJson (newTodo ps)
   where
-    newTodo ps (J.User uid _) =
-      withTop db $ Right <$> Db.newTodo (Db.UserId uid) (ptText ps)
+    newTodo PostTodoParams{..} (J.User uid _) =
+      withTop db $ Right <$> Db.newTodo (Db.UserId uid) text
 
 handleRestUpdateTodo :: H ()
 handleRestUpdateTodo = do
@@ -68,8 +67,8 @@ handleRestUpdateTodo = do
   todoId <- reqParam "id"
   replyJson (updateTodo ps todoId)
   where
-    updateTodo ps tid (J.User uid _) = do
-      let newTodo = Db.Todo tid (ptSavedOn ps) (ptCompleted ps) (ptText ps)
+    updateTodo PostTodoParams{..} tid (J.User uid _) = do
+      let newTodo = Db.Todo tid savedOn completed text
       withTop db $ Db.saveTodo (Db.UserId uid) newTodo
 
 handleUnknownAPI :: H ()

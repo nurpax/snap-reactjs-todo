@@ -15,7 +15,7 @@
 # resolver:
 #  name: custom-snapshot
 #  location: "./custom-snapshot.yaml"
-resolver: lts-7.3
+resolver: lts-7.14
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -39,13 +39,12 @@ packages:
 - '.'
 
 extra-deps:
+   - aeson-1.0.2.1
    - snaplet-sqlite-simple-1.0.0.0
    - snap-loader-static-1.0.0.0
    - heist-1.0.0.0
    - map-syntax-0.2.0.1
    - snap-1.0.0.1
-   - bcrypt-0.0.10
-   - sqlite-simple-0.4.10.0
    - snaplet-sqlite-simple-jwt-auth-0.2.0.0
 
 # Override default flag values for local packages and extra-deps
