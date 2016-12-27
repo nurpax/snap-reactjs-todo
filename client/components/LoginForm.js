@@ -2,6 +2,8 @@
 
 import React, { PropTypes, Component } from 'react'
 
+import { Row, Columns } from './helpers'
+
 export default class LoginForm extends Component {
   static propTypes = {
     onSubmit: PropTypes.func.isRequired,
@@ -22,30 +24,30 @@ export default class LoginForm extends Component {
     return (
       <div>
         <h2>{this.props.type == 'login' ? "Login" : "Sign up"}</h2>
-        <div className='row'>
-          <div className='six columns'>
+        <Row>
+          <Columns n={6}>
             <label htmlFor='loginNameInput'>Username or e-mail address</label>
             <input className='u-full-width' type='text' placeholder='test@example.com'
               id='loginNameInput' ref='login' />
-          </div>
-        </div>
+          </Columns>
+        </Row>
 
-        <div className='row'>
-          <div className='six columns'>
+        <Row>
+          <Columns n={6}>
             <label htmlFor='loginPassInput'>Password</label>
             <input className='u-full-width' type='password' placeholder='Password..'
               id='loginPassInput' ref='pass' />
-          </div>
-        </div>
+          </Columns>
+        </Row>
 
-        <div className='row'>
-          <div className='six columns'>
+        <Row>
+          <Columns n={6}>
             <button className='button-primary u-full-width'
               onClick={this.onClick}>
               {this.props.type == 'login' ? 'Sign in' : 'Sign up'}
             </button>
-          </div>
-        </div>
+          </Columns>
+        </Row>
       </div>
     )
   }

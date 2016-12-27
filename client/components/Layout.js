@@ -1,7 +1,7 @@
 
 import React, { Component, PropTypes } from 'react'
-import classNames from 'classnames'
 
+import { Row, Columns } from './helpers'
 // Pull skeleton into the CSS build
 // eslint-disable-next-line no-unused-vars
 import globalStyles from './globalStyles.css'
@@ -20,23 +20,23 @@ export default class Layout extends Component {
       <div>
         <div className='container'>
 
-          <div className={classNames("row", s.navbar)}>
-            <div className='one column' />
-            <div className='ten columns'>
+          <Row className={s.navbar}>
+            <Columns n={1} />
+            <Columns n={10}>
               <Navbar user={this.props.user} />
-            </div>
-            <div className='one column' />
-          </div>
+            </Columns>
+            <Columns n={1} />
+          </Row>
 
-          <div className='row'>
-            <div className='one column' />
-            <div className='ten columns'>
+          <Row>
+            <Columns n={1} />
+            <Columns n={10}>
               <div className={s.contentMargin}>
                 {this.props.children}
               </div>
-            </div>
-            <div className='one column' />
-          </div>
+            </Columns>
+            <Columns n={1} />
+          </Row>
         </div>
       </div>
     )

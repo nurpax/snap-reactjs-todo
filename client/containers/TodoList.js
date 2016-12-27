@@ -7,6 +7,7 @@ import { getSortedTodos } from '../selectors'
 
 import styles from './TodoList.scss'
 
+import { Row, Columns } from '../components/helpers'
 import Layout from '../components/Layout'
 import TodoItem from './TodoItem'
 import SelectFilterLink from './SelectFilterLink'
@@ -38,18 +39,18 @@ class NewTodoForm extends Component {
   render () {
     return (
       <form>
-        <div className='row'>
-          <div className='six columns'>
+        <Row>
+          <Columns n={6}>
             <input className='u-full-width'
               value={this.state.todo}
               onChange={this.handleChange}
               type='text' placeholder='Todo..'
               id='newTodo' />
-          </div>
-          <div className='six columns'>
+          </Columns>
+          <Columns n={6}>
             <input onClick={this.onClick} className='button-primary' type='submit' value='Add' />
-          </div>
-        </div>
+          </Columns>
+        </Row>
       </form>
     )
   }
