@@ -96,8 +96,8 @@ routes = [ ("/api/login/new",  with jwt J.registerUser)
          ]
          ++ apiRoutes ++
          [ ("/api",            handleUnknownAPI)
-         , ("/static",         serveDirectory "static")
-         , ("/",               serveFile "static/index.html")
+         , ("/static",         setCaching True >> serveDirectory "static")
+         , ("/",               setCaching False >> serveFile "static/build/index.html")
          ]
 
 -- | The application initializer.

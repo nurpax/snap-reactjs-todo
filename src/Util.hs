@@ -7,6 +7,7 @@ module Util (
   , writeJSON
   , jsonResponse
   , finishEarly
+  , setCaching
   ) where
 
 import           Control.Error hiding (err)
@@ -56,3 +57,11 @@ finishEarly code str = do
   modifyResponse $ addHeader "Content-Type" "text/plain"
   writeBS str
   getResponse >>= finishWith
+
+setCaching :: MonadSnap m => Bool -> m ()
+setCaching enable = do
+  if enable then
+    modifyResponse $ setHeader "Cache-Control" "max-age=31536000"
+  else
+    modifyResponse $ setHeader "Cache-Control" "no-cache, no-store, must-revalidate"
+                   . setHeader "Expires" "0"
