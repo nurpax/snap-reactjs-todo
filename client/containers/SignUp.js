@@ -41,7 +41,7 @@ class SignUpContainer extends Component {
 
   render () {
     return (
-      <Layout isLoginScreen user={this.props.isAuthenticated}>
+      <Layout user={this.props.isAuthenticated}>
         <LoginForm type='signup' onSubmit={this.handleSubmit} />
         <LoginError />
       </Layout>

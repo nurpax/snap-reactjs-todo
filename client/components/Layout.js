@@ -12,8 +12,7 @@ import Navbar from './Navbar'
 export default class Layout extends Component {
   static propTypes = {
     children: PropTypes.any,
-    user: PropTypes.object,
-    isLoginScreen: PropTypes.bool
+    user: PropTypes.object
   }
   render () {
     return (
