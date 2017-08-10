@@ -17,7 +17,7 @@ var config = {
     publicPath: '/static/build'
   },
   resolve: {
-    extensions: ['', '.js', '.jsx']
+    extensions: ['.js', '.jsx']
   },
   plugins: [
     new webpack.DefinePlugin({'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')}),
@@ -29,7 +29,7 @@ var config = {
     loaders : [
       {
         test : /\.jsx?/,
-        loader : 'babel',
+        loader : 'babel-loader',
         include : APP_DIR,
         exclude: '/node_modules/',
         query: {
@@ -40,17 +40,18 @@ var config = {
 
       {
         test: /globalStyles\.css$/,
-        loader: ExtractTextPlugin.extract(
-          'style-loader',
-          'css-loader?sourceMap'
-        )
+        use: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: 'css-loader?sourceMap'
+
+        })
       },
 
       {
         test: /\.scss$/,
-        loader: ExtractTextPlugin.extract(
-          'style-loader',
-          combineLoaders([{
+        use: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: combineLoaders([{
             loader: 'css-loader',
             query: {
               modules: true,
@@ -64,7 +65,7 @@ var config = {
               sourceMap: true,
             }
           }])
-        )
+        }),
       }
     ]
 
