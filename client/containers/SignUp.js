@@ -16,20 +16,9 @@ function select (state) {
 }
 
 class SignUpContainer extends Component {
-  static defaultProps = { redirect: '/' }
   static propTypes = {
     signUp: PropTypes.func.isRequired,
-    replace: PropTypes.func.isRequired,
-    redirect: React.PropTypes.string.isRequired,
     isAuthenticated: React.PropTypes.object
-  }
-
-  componentWillReceiveProps (nextProps) {
-    const { isAuthenticated, replace, redirect } = nextProps
-
-    if (isAuthenticated) {
-      replace(redirect)
-    }
   }
 
   handleSubmit = (p) => {

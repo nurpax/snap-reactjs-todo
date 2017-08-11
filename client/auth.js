@@ -6,6 +6,9 @@ import fetch from 'isomorphic-fetch'
 import jwt_decode from 'jwt-decode'
 import { combineReducers } from 'redux'
 import { push } from 'react-router-redux'
+import locationHelperBuilder from 'redux-auth-wrapper/history4/locationHelper'
+import { connectedRouterRedirect } from 'redux-auth-wrapper/history4/redirect'
+import connectedAuthWrapper from 'redux-auth-wrapper/connectedAuthWrapper'
 
 // Redux actions and reducers for authetication with JWT
 
@@ -148,3 +151,30 @@ export const authReducer = combineReducers({
 
 // User selector from state
 export const getUser = (state) => state.auth ? state.auth.user : null
+
+const locationHelper = locationHelperBuilder({})
+
+const userIsAuthenticatedDefaults = {
+  authenticatedSelector: state => getUser(state) !== null,
+  wrapperDisplayName: 'UserIsAuthenticated'
+}
+
+export const userIsAuthenticated = connectedAuthWrapper(userIsAuthenticatedDefaults)
+export const userIsAuthenticatedRedir = connectedRouterRedirect({
+  ...userIsAuthenticatedDefaults,
+  redirectPath: '/login'
+})
+
+const userIsNotAuthenticatedDefaults = {
+  authenticatedSelector: state => getUser(state) == null,
+  wrapperDisplayName: 'UserIsNotAuthenticated'
+}
+
+export const userIsNotAuthenticated = connectedAuthWrapper(userIsNotAuthenticatedDefaults)
+
+export const userIsNotAuthenticatedRedir = connectedRouterRedirect({
+  ...userIsNotAuthenticatedDefaults,
+  redirectPath: (state, ownProps) => locationHelper.getRedirectQueryParam(ownProps) || '/',
+  allowRedirectBack: false
+})
+

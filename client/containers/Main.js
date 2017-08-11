@@ -1,11 +1,10 @@
 
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
+import { Link } from 'react-router-dom'
 import Layout from '../components/Layout'
 
 import { getUser } from '../auth'
-
-var Link = require('react-router').Link
 
 class Main extends Component {
   static propTypes = {
