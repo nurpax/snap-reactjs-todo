@@ -1,5 +1,6 @@
 
 import React, { Component } from 'react'
+import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
 import classNames from 'classnames'
 
@@ -13,7 +14,7 @@ const Nli = (props) =>
 
 export default class Navbar extends Component {
   static propTypes = {
-    user: React.PropTypes.object
+    user: PropTypes.object
   }
 
   loggedInUserMenu () {

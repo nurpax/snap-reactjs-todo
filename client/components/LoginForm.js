@@ -1,13 +1,14 @@
 // Login/Signup form
 
-import React, { PropTypes, Component } from 'react'
+import React, { Component } from 'react'
+import PropTypes from 'prop-types'
 
 import { Row, Columns } from './helpers'
 
 export default class LoginForm extends Component {
   static propTypes = {
     onSubmit: PropTypes.func.isRequired,
-    type: React.PropTypes.oneOf(['login', 'signup']).isRequired
+    type: PropTypes.oneOf(['login', 'signup']).isRequired
   }
 
   onClick = (e) => {

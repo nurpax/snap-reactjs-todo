@@ -1,5 +1,6 @@
 
-import React, { Component, PropTypes } from 'react'
+import React, { Component } from 'react'
+import PropTypes from 'prop-types'
 
 import { Row, Columns } from './helpers'
 // Pull skeleton into the CSS build

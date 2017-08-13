@@ -1,5 +1,7 @@
 
-import React, { PropTypes, Component } from 'react'
+import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+
 import { connect } from 'react-redux'
 
 import Layout from '../components/Layout'
@@ -18,7 +20,7 @@ function select (state, ownProps) {
 class LoginContainer extends Component {
   static propTypes = {
     login: PropTypes.func.isRequired,
-    isAuthenticated: React.PropTypes.object
+    isAuthenticated: PropTypes.object
   }
 
   handleSubmit = (p) => {

@@ -1,5 +1,6 @@
 
-import React, { PropTypes, Component } from 'react'
+import React, { Component } from 'react'
+import PropTypes from 'prop-types'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 
@@ -18,7 +19,7 @@ function select (state) {
 class SignUpContainer extends Component {
   static propTypes = {
     signUp: PropTypes.func.isRequired,
-    isAuthenticated: React.PropTypes.object
+    isAuthenticated: PropTypes.object
   }
 
   handleSubmit = (p) => {
