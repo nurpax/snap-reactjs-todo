@@ -1,7 +1,12 @@
 
 import React from 'react'
+import { Link } from 'react-router-dom'
+import { connect } from 'react-redux'
 
-import { logout, userIsAuthenticated } from '../auth'
+import { logout } from '../auth'
 
-export default userIsAuthenticated(({ to, children }) =>
-  <a href={to} onClick={(e) => logout()}>{children}</a>)
+const Logout = function ({ logout, to, children }) {
+  return <Link to={to} onClick={(e) => logout()}>{children}</Link>
+}
+
+export default connect(false, { logout })(Logout)
