@@ -87,7 +87,7 @@ function checkHttpStatus(response) {
 // as an object.  The server response is also automatically JSON parsed.
 export function fetchWithAuth (dispatch, getState, url, params, cb) {
   let p = {...params}
-  p.headers = {'Authorization': `Bearer ${getState().auth.user.token}`}
+  p.headers = {...p.headers, 'Authorization': `Bearer ${getState().auth.user.token}`}
   if (params.body instanceof Object) {
     p.body = JSON.stringify(params.body)
   }
