@@ -16,6 +16,19 @@ var config = {
     filename: "[name]-bundle-[hash].js",
     publicPath: '/static/build'
   },
+  devServer: {
+    port: 3000,
+    historyApiFallback: {
+      index: '/static/build/index.html'
+    },
+    proxy: [
+      {
+        context: ['/api/**', '/rest/**'],
+        target: 'http://localhost:8000',
+        secure: false
+      }
+    ]
+  },
   resolve: {
     extensions: ['.js', '.jsx']
   },

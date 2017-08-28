@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "webpack -d --watch",
     "lint": "eslint client",
-    "build": "webpack -p"
+    "build": "webpack -p",
+    "start": "webpack-dev-server"
   },
   "repository": {
     "type": "git",
@@ -60,6 +61,7 @@
     "sass-loader": "^6.0.6",
     "style-loader": "^0.18.2",
     "webpack": "^3.5.4",
-    "webpack-combine-loaders": "^2.0.3"
+    "webpack-combine-loaders": "^2.0.3",
+    "webpack-dev-server": "^2.7.1"
   }
 }
