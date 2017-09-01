@@ -28,7 +28,7 @@ export default class Layout extends Component {
             <Columns n={1} />
           </Row>
 
-          <Row>
+          <Row className={s.padTopBottom}>
             <Columns n={1} />
             <Columns n={10}>
               <div className={s.contentMargin}>
