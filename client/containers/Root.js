@@ -1,6 +1,7 @@
 import React from 'react'
 import { Provider } from 'react-redux'
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import { Route, Switch } from 'react-router-dom'
+import { ConnectedRouter } from 'react-router-redux'
 
 import { userIsNotAuthenticatedRedir, userIsAuthenticatedRedir } from '../auth'
 import Main from './Main'
@@ -11,7 +12,7 @@ import Profile from './Profile'
 
 import configureStore from '../configureStore'
 
-const store = configureStore()
+const { store, history } = configureStore()
 
 const AuthLogin = userIsNotAuthenticatedRedir(Login)
 const AuthSignUp = userIsNotAuthenticatedRedir(SignUp)
@@ -20,7 +21,7 @@ const AuthProfile = userIsAuthenticatedRedir(Profile)
 
 const Root = () => (
   <Provider store={store}>
-    <Router>
+    <ConnectedRouter history={history}>
       <Switch>
         <Route exact path='/' component={Main} />
         <Route exact path='/todos' component={AuthTodoList} />
@@ -28,7 +29,7 @@ const Root = () => (
         <Route exact path='/profile' component={AuthProfile} />
         <Route exact path='/signup' component={AuthSignUp} />
       </Switch>
-    </Router>
+    </ConnectedRouter>
   </Provider>
 )
 
