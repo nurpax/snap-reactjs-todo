@@ -7,7 +7,7 @@
     "dev": "webpack -d --watch",
     "lint": "eslint client",
     "build": "webpack -p",
-    "start": "webpack-dev-server"
+    "start": "webpack-dev-server -d"
   },
   "repository": {
     "type": "git",
