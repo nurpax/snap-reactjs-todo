@@ -9,7 +9,7 @@ import s from './Navbar.scss'
 
 /* eslint-disable react/prop-types */
 const Nli = (props) =>
-  <li className={classNames(s.nav, props.className)}>{props.children}</li>
+  <li onClick={props.onClick} className={classNames(s.nav, props.className)}>{props.children}</li>
 /* eslint-enable react/prop-types */
 
 export default class Navbar extends Component {
@@ -17,9 +17,13 @@ export default class Navbar extends Component {
     user: PropTypes.object
   }
 
+  // intentionally does nothing, fixes :hover problems for iOS devices as per
+  // https://stackoverflow.com/a/20048559
+  dummy = () => null
+
   loggedInUserMenu () {
     return (
-      <Nli className={s.dropdown}>
+      <Nli className={s.dropdown} onClick={this.dummy}>
         <span className={s.dropbtn}>Profile</span>
         <div className={s.dropdownContent}>
           <div className={s.text}>Logged in as {this.props.user.login}</div>
@@ -33,7 +37,7 @@ export default class Navbar extends Component {
 
   loggedOutUserMenu () {
     return (
-      <Nli className={s.dropdown}>
+      <Nli className={s.dropdown} onClick={this.dummy}>
         <span className={s.dropbtn}>Sign-in</span>
         <div className={s.dropdownContent}>
           <Link to='/login'>Login</Link>
