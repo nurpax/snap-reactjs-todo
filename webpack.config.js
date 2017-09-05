@@ -27,7 +27,8 @@ var config = {
         target: 'http://localhost:8000',
         secure: false
       }
-    ]
+    ],
+    disableHostCheck: true
   },
   resolve: {
     extensions: ['.js', '.jsx']
