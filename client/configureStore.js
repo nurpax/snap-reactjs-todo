@@ -13,8 +13,7 @@ const routermware = routerMiddleware(history)
 const middlewares = [thunkMiddleware, routermware]
 
 if (process.env.NODE_ENV === 'development') {
-  const createLogger = require('redux-logger')
-  const logger = createLogger()
+  const logger = require('redux-logger').default
   middlewares.push(logger)
 }
 
