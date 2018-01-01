@@ -2,3 +2,15 @@
 ul.todos {
     list-style-type: none;
 }
+
+.flex {
+    display: flex;
+}
+
+.width1 {
+    flex-grow: 1;
+}
+
+.width3 {
+    flex-grow: 4;
+}

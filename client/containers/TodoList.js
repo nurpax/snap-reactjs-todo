@@ -6,9 +6,8 @@ import { getUser } from '../auth'
 import { fetchTodos, saveTodo } from '../actions'
 import { getSortedTodos } from '../selectors'
 
-import styles from './TodoList.scss'
+import s from './TodoList.scss'
 
-import { Row, Columns } from '../components/helpers'
 import Layout from '../components/Layout'
 import TodoItem from './TodoItem'
 import SelectFilterLink from './SelectFilterLink'
@@ -40,18 +39,18 @@ class NewTodoForm extends Component {
   render () {
     return (
       <form>
-        <Row>
-          <Columns n={6}>
+        <div className={s.flex}>
+          <div className={s.width3}>
             <input className='u-full-width'
               value={this.state.todo}
               onChange={this.handleChange}
               type='text' placeholder='Todo..'
               id='newTodo' />
-          </Columns>
-          <Columns n={6}>
+          </div>
+          <div className={s.width1}>
             <input onClick={this.onClick} className='button-primary' type='submit' value='Add' />
-          </Columns>
-        </Row>
+          </div>
+        </div>
       </form>
     )
   }
@@ -79,7 +78,7 @@ class TodoList extends Component {
         <p><strong>Show: </strong>
           {filterChoices.map(f => <SelectFilterLink key={f} filter={f} />)}
         </p>
-        <ul className={styles.todos}>
+        <ul className={s.todos}>
           {todos}
         </ul>
         <NewTodoForm saveTodo={saveTodo} />

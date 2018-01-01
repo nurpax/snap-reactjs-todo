@@ -2,7 +2,7 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import { Alert, Row, Columns } from '../components/helpers'
+import { Alert } from '../components/helpers'
 
 export class LoginErrorView extends Component {
   static propTypes = {
@@ -20,11 +20,7 @@ export class LoginErrorView extends Component {
       ? <Alert type='error'>{this.props.msg}</Alert>
       : null
     return (
-      <Row>
-        <Columns n={6}>
-          {msg}
-        </Columns>
-      </Row>
+      <div>{msg}</div>
     )
   }
 }
