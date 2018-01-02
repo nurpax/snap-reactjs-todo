@@ -1,26 +1,16 @@
 
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-
 import { connect } from 'react-redux'
 
-import Layout from '../components/Layout'
+import Layout from './Layout'
 import LoginForm from '../components/LoginForm'
-
 import LoginError from './LoginError.js'
-import { login, getUser } from '../auth'
-
-function select (state, ownProps) {
-  const isAuthenticated = getUser(state)
-  return {
-    isAuthenticated,
-  }
-}
+import { login } from '../auth'
 
 class LoginContainer extends Component {
   static propTypes = {
-    login: PropTypes.func.isRequired,
-    isAuthenticated: PropTypes.object
+    login: PropTypes.func.isRequired
   }
 
   handleSubmit = (p) => {
@@ -32,12 +22,12 @@ class LoginContainer extends Component {
 
   render () {
     return (
-      <Layout user={this.props.isAuthenticated}>
+      <div>
         <LoginForm type='login' onSubmit={this.handleSubmit} />
         <LoginError />
-      </Layout>
+      </div>
     )
   }
 }
 
-export default connect(select, { login })(LoginContainer)
+export default Layout(connect(null, { login })(LoginContainer))

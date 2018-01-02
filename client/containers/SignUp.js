@@ -4,22 +4,14 @@ import PropTypes from 'prop-types'
 import { routerActions } from 'react-router-redux'
 import { connect } from 'react-redux'
 
-import Layout from '../components/Layout'
+import Layout from './Layout'
 import LoginForm from '../components/LoginForm'
 import LoginError from './LoginError.js'
-import { signUp, getUser } from '../auth'
-
-function select (state) {
-  const isAuthenticated = getUser(state)
-  return {
-    isAuthenticated
-  }
-}
+import { signUp } from '../auth'
 
 class SignUpContainer extends Component {
   static propTypes = {
     signUp: PropTypes.func.isRequired,
-    isAuthenticated: PropTypes.object
   }
 
   handleSubmit = (p) => {
@@ -31,12 +23,12 @@ class SignUpContainer extends Component {
 
   render () {
     return (
-      <Layout user={this.props.isAuthenticated}>
+      <div>
         <LoginForm type='signup' onSubmit={this.handleSubmit} />
         <LoginError />
-      </Layout>
+      </div>
     )
   }
 }
 
-export default connect(select, { signUp, replace: routerActions.replace })(SignUpContainer)
+export default Layout(connect(null, { signUp, replace: routerActions.replace })(SignUpContainer))

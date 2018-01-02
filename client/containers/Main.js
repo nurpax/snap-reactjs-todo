@@ -1,20 +1,12 @@
 
 import React, { Component } from 'react'
-import PropTypes from 'prop-types'
-import { connect } from 'react-redux'
 import { Link } from 'react-router-dom'
-import Layout from '../components/Layout'
-
-import { getUser } from '../auth'
+import Layout from './Layout'
 
 class Main extends Component {
-  static propTypes = {
-    user: PropTypes.object
-  }
-
   render () {
     return (
-      <Layout user={this.props.user}>
+      <div>
         <p>An example application using:</p>
         <ul>
           <li>React</li>
@@ -23,15 +15,9 @@ class Main extends Component {
           <li>Haskell Snap framework with a custom JWT authorization module</li>
         </ul>
         <p>Go to: <Link to='/todos'>Todo List</Link></p>
-      </Layout>
+      </div>
     )
   }
 }
 
-function mapStateToProps (state) {
-  return {
-    user: getUser(state)
-  }
-}
-
-export default connect(mapStateToProps)(Main)
+export default Layout(Main)

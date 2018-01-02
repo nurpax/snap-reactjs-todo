@@ -1,30 +1,16 @@
 
 import React, { Component } from 'react'
-import PropTypes from 'prop-types'
-import { connect } from 'react-redux'
-import { getUser } from '../auth'
-
-import Layout from '../components/Layout'
+import Layout from './Layout'
 
 class ProfileView extends Component {
-  static propTypes = {
-    user: PropTypes.object,
-  }
-
   render () {
     return (
-      <Layout user={this.props.user}>
+      <div>
         <h4>Account settings for {this.props.user.login}</h4>
         <p>TODO change password</p>
-      </Layout>
+      </div>
     )
   }
 }
 
-function mapStateToProps (state) {
-  return {
-    user: getUser(state)
-  }
-}
-
-export default connect(mapStateToProps)(ProfileView)
+export default Layout(ProfileView)
